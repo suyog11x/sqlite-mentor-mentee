@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | Mentor–Mentee System</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="app-shell">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">🎓</div>
+                    <div>
+                        <div class="logo-text">MentorConnect</div>
+                        <div class="logo-sub">College Mentor System</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="avatar" id="sidebar-avatar">A</div>
+                    <div>
+                        <div class="user-name" id="sidebar-username">Admin</div>
+                        <div class="user-role" id="sidebar-role">Administrator</div>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Main</div>
+                <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span><span
+                        class="nav-label">Dashboard</span></div>
+                <div class="nav-section-label">Management</div>
+                <div class="nav-item" data-page="users"><span class="nav-icon">👥</span><span class="nav-label">User
+                        Management</span></div>
+                <div class="nav-item" data-page="assign"><span class="nav-icon">🔗</span><span class="nav-label">Assign
+                        Mentees</span></div>
+                <div class="nav-section-label">Analytics</div>
+                <div class="nav-item" data-page="reports"><span class="nav-icon">📈</span><span
+                        class="nav-label">Reports & Analytics</span></div>
+                <div class="nav-item" data-page="activity"><span class="nav-icon">📋</span><span
+                        class="nav-label">Activity Log</span></div>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="nav-item btn-full" id="btn-logout"
+                    style="border:none;background:rgba(220,38,38,0.1);color:#dc2626;width:100%;">
+                    <span class="nav-icon">🚪</span><span class="nav-label">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <div class="main-content">
+            <header class="top-header">
+                <div class="header-title">
+                    <h2>Admin Control Panel</h2>
+                    <p id="header-subtitle">Dashboard</p>
+                </div>
+                <div class="header-actions">
+                    <span class="header-date" id="current-date"></span>
+                </div>
+            </header>
+
+            <div class="page-content">
+
+                <!-- DASHBOARD PAGE -->
+                <div class="page active" id="page-dashboard">
+                    <div class="stats-grid" id="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon navy">👥</div>
+                            <div>
+                                <div class="stat-value" id="s-users">—</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon gold">👨‍🏫</div>
+                            <div>
+                                <div class="stat-value" id="s-mentors">—</div>
+                                <div class="stat-label">Mentors</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">🎒</div>
+                            <div>
+                                <div class="stat-value" id="s-mentees">—</div>
+                                <div class="stat-label">Mentees</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon blue">📅</div>
+                            <div>
+                                <div class="stat-value" id="s-meetings">—</div>
+                                <div class="stat-label">Meetings</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon purple">📄</div>
+                            <div>
+                                <div class="stat-value" id="s-docs">—</div>
+                                <div class="stat-label">Documents</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon red">💬</div>
+                            <div>
+                                <div class="stat-value" id="s-msgs">—</div>
+                                <div class="stat-label">Messages</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-2" style="gap:20px;">
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📋</span>Recent Activity</div>
+                            </div>
+                            <div id="recent-activity" class="table-wrap">
+                                <div style="text-align:center;padding:24px;">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📊</span>Meetings by Status</div>
+                            </div>
+                            <canvas id="chart-meetings" height="220"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USERS PAGE -->
+                <div class="page" id="page-users">
+                    <div class="card">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">👥</span>User Management</div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <input type="text" id="user-search" placeholder="🔍 Search users…"
+                                    style="padding:8px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.875rem;width:220px;" />
+                                <select id="user-role-filter"
+                                    style="padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.875rem;">
+                                    <option value="">All Roles</option>
+                                    <option value="mentor">Mentor</option>
+                                    <option value="mentee">Mentee</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <button class="btn btn-primary btn-sm" onclick="showModal('modal-create-user')">+ Add
+                                    User</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table id="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Department</th>
+                                        <th>Roll No</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody">
+                                    <tr>
+                                        <td colspan="7" style="text-align:center;padding:24px;">
+                                            <div class="spinner" style="margin:auto;"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ASSIGN PAGE -->
+                <div class="page" id="page-assign">
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">🔗</span>Assign Mentee to Mentor</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Select Mentor</label>
+                                <select id="assign-mentor-select">
+                                    <option value="">— Choose Mentor —</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Select Mentee</label>
+                                <select id="assign-mentee-select">
+                                    <option value="">— Choose Mentee —</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="doAssign()">Assign Now</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📋</span>Current Mappings</div>
+                                <button class="btn btn-outline btn-sm" onclick="loadMappings()">↻ Refresh</button>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Mentor</th>
+                                            <th>Mentee</th>
+                                            <th>Roll No</th>
+                                            <th>Assigned</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mappings-tbody">
+                                        <tr>
+                                            <td colspan="5" style="text-align:center;padding:16px;">
+                                                <div class="spinner" style="margin:auto;"></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REPORTS PAGE -->
+                <div class="page" id="page-reports">
+                    <div class="grid-2" style="margin-bottom:20px;">
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📚</span>Mentees by Department</div>
+                            </div>
+                            <canvas id="chart-dept" height="220"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📅</span>Monthly Meetings</div>
+                            </div>
+                            <canvas id="chart-monthly" height="220"></canvas>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📄</span>Documents by Type</div>
+                            </div>
+                            <canvas id="chart-docs" height="220"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📥</span>Download Student Report (PDF)</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Select Mentee</label>
+                                <select id="pdf-mentee-select">
+                                    <option value="">— Choose Mentee —</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-gold" onclick="downloadPDF()">⬇ Download PDF Report</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIVITY PAGE -->
+                <div class="page" id="page-activity">
+                    <div class="card">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📋</span>System Activity Log</div>
+                            <button class="btn btn-outline btn-sm" onclick="loadActivity()">↻ Refresh</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Action</th>
+                                        <th>Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activity-tbody">
+                                    <tr>
+                                        <td colspan="5" style="text-align:center;padding:24px;">
+                                            <div class="spinner" style="margin:auto;"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- page-content -->
+        </div><!-- main-content -->
+    </div>
+
+    <!-- Create User Modal -->
+    <div class="modal-overlay" id="modal-create-user">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Create New User</h3>
+                <button class="modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-create-user">
+                    <div class="grid-2">
+                        <div class="form-group"><label>Full Name *</label><input type="text" id="cu-name" required />
+                        </div>
+                        <div class="form-group"><label>Email *</label><input type="email" id="cu-email" required />
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Password *</label><input type="password" id="cu-password"
+                                required /></div>
+                        <div class="form-group"><label>Role *</label>
+                            <select id="cu-role">
+                                <option value="mentor">Mentor</option>
+                                <option value="mentee">Mentee</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Department</label><input type="text" id="cu-dept" /></div>
+                        <div class="form-group"><label>Phone</label><input type="text" id="cu-phone" /></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Roll No (Mentee)</label><input type="text" id="cu-rollno" />
+                        </div>
+                        <div class="form-group"><label>Year (Mentee)</label><input type="text" id="cu-year"
+                                placeholder="e.g. 2nd Year" /></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="hideModal('modal-create-user')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitCreateUser()">Create User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal-overlay" id="modal-edit-user">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Edit User</h3>
+                <button class="modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="eu-id" />
+                <div class="grid-2">
+                    <div class="form-group"><label>Full Name</label><input type="text" id="eu-name" /></div>
+                    <div class="form-group"><label>Email</label><input type="email" id="eu-email" /></div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group"><label>New Password (leave blank to keep)</label><input type="password"
+                            id="eu-password" /></div>
+                    <div class="form-group"><label>Department</label><input type="text" id="eu-dept" /></div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group"><label>Phone</label><input type="text" id="eu-phone" /></div>
+                    <div class="form-group"><label>Roll No</label><input type="text" id="eu-rollno" /></div>
+                </div>
+                <div class="form-group"><label>Year</label><input type="text" id="eu-year" /></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="hideModal('modal-edit-user')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitEditUser()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+    <script src="/js/api.js"></script>
+    <script>
+        const user = requireAuth(['admin']);
+        initSidebar(user);
+        setCurrentDate();
+
+        let allUsers = [];
+
+        async function loadDashboard() {
+            try {
+                const data = await API.get('/admin/dashboard');
+                document.getElementById('s-users').textContent = data.totalUsers;
+                document.getElementById('s-mentors').textContent = data.totalMentors;
+                document.getElementById('s-mentees').textContent = data.totalMentees;
+                document.getElementById('s-meetings').textContent = data.totalMeetings;
+                document.getElementById('s-docs').textContent = data.totalDocs;
+                document.getElementById('s-msgs').textContent = data.totalMessages;
+
+                const tbody = document.getElementById('recent-activity');
+                if (data.recentActivity.length === 0) {
+                    tbody.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No activity yet</p></div>';
+                } else {
+                    tbody.innerHTML = '<table><thead><tr><th>User</th><th>Action</th><th>Time</th></tr></thead><tbody>'
+                        + data.recentActivity.slice(0, 10).map(a => `<tr><td>${a.name || 'System'}</td><td>${a.action}</td><td style="font-size:0.78rem;color:#6b7280">${formatDate(a.timestamp)}</td></tr>`).join('')
+                        + '</tbody></table>';
+                }
+
+                // Charts
+                const rpt = await API.get('/reports/overview');
+                new Chart(document.getElementById('chart-meetings'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: rpt.meetingsByStatus.map(d => d.status),
+                        datasets: [{ data: rpt.meetingsByStatus.map(d => d.count), backgroundColor: ['#2563eb', '#059669', '#dc2626'] }]
+                    },
+                    options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
+                });
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadUsers() {
+            try {
+                allUsers = await API.get('/admin/users');
+                renderUsersTable(allUsers);
+            } catch (e) { toast(e.message, 'error'); }
+        }
+        function renderUsersTable(users) {
+            const tbody = document.getElementById('users-tbody');
+            if (users.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6b7280;">No users found</td></tr>'; return; }
+            tbody.innerHTML = users.map(u => `
+    <tr>
+      <td><strong>${u.name}</strong></td>
+      <td>${u.email}</td>
+      <td><span class="badge badge-${u.role}">${u.role}</span></td>
+      <td>${u.department || '—'}</td>
+      <td>${u.rollno || '—'}</td>
+      <td style="font-size:0.78rem;color:#6b7280">${formatDateOnly(u.created_at)}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editUser(${u.id})">Edit</button>
+        ${u.role !== 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.name}')">Delete</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+        }
+
+        document.getElementById('user-search').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            const role = document.getElementById('user-role-filter').value;
+            renderUsersTable(allUsers.filter(u => (!role || u.role === role) && (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))));
+        });
+        document.getElementById('user-role-filter').addEventListener('change', (e) => {
+            const role = e.target.value;
+            const q = document.getElementById('user-search').value.toLowerCase();
+            renderUsersTable(allUsers.filter(u => (!role || u.role === role) && (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))));
+        });
+
+        async function submitCreateUser() {
+            try {
+                await API.post('/admin/users', {
+                    name: document.getElementById('cu-name').value,
+                    email: document.getElementById('cu-email').value,
+                    password: document.getElementById('cu-password').value,
+                    role: document.getElementById('cu-role').value,
+                    department: document.getElementById('cu-dept').value,
+                    phone: document.getElementById('cu-phone').value,
+                    rollno: document.getElementById('cu-rollno').value,
+                    year: document.getElementById('cu-year').value
+                });
+                hideModal('modal-create-user');
+                document.getElementById('form-create-user').reset();
+                toast('User created successfully', 'success');
+                loadUsers(); loadAssign();
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        function editUser(id) {
+            const u = allUsers.find(x => x.id === id);
+            if (!u) return;
+            document.getElementById('eu-id').value = u.id;
+            document.getElementById('eu-name').value = u.name;
+            document.getElementById('eu-email').value = u.email;
+            document.getElementById('eu-dept').value = u.department || '';
+            document.getElementById('eu-phone').value = u.phone || '';
+            document.getElementById('eu-rollno').value = u.rollno || '';
+            document.getElementById('eu-year').value = u.year || '';
+            document.getElementById('eu-password').value = '';
+            showModal('modal-edit-user');
+        }
+        async function submitEditUser() {
+            const id = document.getElementById('eu-id').value;
+            try {
+                await API.put(`/admin/users/${id}`, {
+                    name: document.getElementById('eu-name').value,
+                    email: document.getElementById('eu-email').value,
+                    password: document.getElementById('eu-password').value || undefined,
+                    department: document.getElementById('eu-dept').value,
+                    phone: document.getElementById('eu-phone').value,
+                    rollno: document.getElementById('eu-rollno').value,
+                    year: document.getElementById('eu-year').value
+                });
+                hideModal('modal-edit-user');
+                toast('User updated', 'success');
+                loadUsers();
+            } catch (e) { toast(e.message, 'error'); }
+        }
+        async function deleteUser(id, name) {
+            if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+            try { await API.delete(`/admin/users/${id}`); toast('User deleted', 'success'); loadUsers(); loadMappings(); }
+            catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadAssign() {
+            try {
+                const [mentors, mentees] = await Promise.all([API.get('/admin/mentors'), API.get('/admin/all-mentees')]);
+                document.getElementById('assign-mentor-select').innerHTML = '<option value="">— Choose Mentor —</option>'
+                    + mentors.map(m => `<option value="${m.id}">${m.name} (${m.department || '—'})</option>`).join('');
+                document.getElementById('assign-mentee-select').innerHTML = '<option value="">— Choose Mentee —</option>'
+                    + mentees.map(m => `<option value="${m.id}">${m.name} — ${m.rollno || 'no roll'}</option>`).join('');
+                // pdf select
+                document.getElementById('pdf-mentee-select').innerHTML = '<option value="">— Choose Mentee —</option>'
+                    + mentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
+                loadMappings();
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadMappings() {
+            try {
+                const mappings = await API.get('/admin/mappings');
+                const tbody = document.getElementById('mappings-tbody');
+                if (mappings.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#6b7280;padding:16px;">No mappings yet</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = mappings.map(m => `
+      <tr>
+        <td><strong>${m.mentor_name}</strong></td>
+        <td>${m.mentee_name}</td>
+        <td>${m.rollno || '—'}</td>
+        <td style="font-size:0.78rem;color:#6b7280">${formatDateOnly(m.assigned_at)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="removeMapping(${m.id})">Remove</button></td>
+      </tr>
+    `).join('');
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function doAssign() {
+            const mentor_id = document.getElementById('assign-mentor-select').value;
+            const mentee_id = document.getElementById('assign-mentee-select').value;
+            if (!mentor_id || !mentee_id) { toast('Select both mentor and mentee', 'warning'); return; }
+            try { await API.post('/admin/mappings', { mentor_id, mentee_id }); toast('Assignment saved', 'success'); loadMappings(); }
+            catch (e) { toast(e.message, 'error'); }
+        }
+        async function removeMapping(id) {
+            if (!confirm('Remove this assignment?')) return;
+            try { await API.delete(`/admin/mappings/${id}`); toast('Removed', 'success'); loadMappings(); }
+            catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadReports() {
+            try {
+                const data = await API.get('/reports/overview');
+                const colors = ['#0d1b4b', '#c9a84c', '#059669', '#2563eb', '#dc2626', '#7c3aed'];
+                new Chart(document.getElementById('chart-dept'), {
+                    type: 'bar',
+                    data: { labels: data.byDept.map(d => d.department || 'Unknown'), datasets: [{ label: 'Mentees', data: data.byDept.map(d => d.count), backgroundColor: colors }] },
+                    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, maintainAspectRatio: false }
+                });
+                new Chart(document.getElementById('chart-monthly'), {
+                    type: 'line',
+                    data: { labels: data.monthlyMeetings.map(d => d.month).reverse(), datasets: [{ label: 'Meetings', data: data.monthlyMeetings.map(d => d.count).reverse(), borderColor: '#0d1b4b', backgroundColor: 'rgba(13,27,75,0.08)', tension: 0.4, fill: true }] },
+                    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, maintainAspectRatio: false }
+                });
+                new Chart(document.getElementById('chart-docs'), {
+                    type: 'pie',
+                    data: { labels: data.docsByType.map(d => d.type), datasets: [{ data: data.docsByType.map(d => d.count), backgroundColor: colors }] },
+                    options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
+                });
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadActivity() {
+            try {
+                const data = await API.get('/admin/dashboard');
+                const tbody = document.getElementById('activity-tbody');
+                tbody.innerHTML = data.recentActivity.map((a, i) => `
+      <tr>
+        <td style="color:#6b7280;font-size:0.78rem">${i + 1}</td>
+        <td>${a.name || 'System'} <span class="badge badge-${a.role || 'admin'}" style="margin-left:4px">${a.role || 'system'}</span></td>
+        <td><span class="badge badge-blue">${a.role || '—'}</span></td>
+        <td>${a.action}</td>
+        <td style="font-size:0.78rem;color:#6b7280">${formatDate(a.timestamp)}</td>
+      </tr>
+    `).join('');
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        function downloadPDF() {
+            const id = document.getElementById('pdf-mentee-select').value;
+            if (!id) { toast('Select a mentee first', 'warning'); return; }
+            const token = localStorage.getItem('mm_token');
+            window.open(`/api/reports/mentee/${id}/pdf?token=${token}`, '_blank');
+        }
+
+        // Nav page switching with lazy loading
+        const pageLoaders = {
+            dashboard: loadDashboard,
+            users: loadUsers,
+            assign: loadAssign,
+            reports: loadReports,
+            activity: loadActivity
+        };
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                showPage(page);
+                pageLoaders[page]?.();
+            });
+        });
+
+        // Initial load
+        loadDashboard();
+    </script>
+</body>
+
+</html>

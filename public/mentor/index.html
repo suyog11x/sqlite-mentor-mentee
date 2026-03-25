@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Mentor Dashboard | Mentor–Mentee System</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">🎓</div>
+                    <div>
+                        <div class="logo-text">MentorConnect</div>
+                        <div class="logo-sub">Faculty Portal</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="avatar" id="sidebar-avatar">M</div>
+                    <div>
+                        <div class="user-name" id="sidebar-username">Mentor</div>
+                        <div class="user-role" id="sidebar-role">Faculty Mentor</div>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Overview</div>
+                <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span><span
+                        class="nav-label">Dashboard</span></div>
+                <div class="nav-section-label">Mentees</div>
+                <div class="nav-item" data-page="mentees"><span class="nav-icon">🎒</span><span class="nav-label">My
+                        Mentees</span></div>
+                <div class="nav-section-label">Interaction</div>
+                <div class="nav-item" data-page="meetings"><span class="nav-icon">📅</span><span
+                        class="nav-label">Meetings</span></div>
+                <div class="nav-item" data-page="messages"><span class="nav-icon">💬</span><span
+                        class="nav-label">Messages <span class="nav-badge" id="unread-badge"
+                            style="display:none">0</span></span></div>
+                <div class="nav-item" data-page="announcements"><span class="nav-icon">📢</span><span
+                        class="nav-label">Announcements</span></div>
+                <div class="nav-section-label">Records</div>
+                <div class="nav-item" data-page="remarks"><span class="nav-icon">📝</span><span class="nav-label">Add
+                        Remarks</span></div>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="nav-item btn-full" id="btn-logout"
+                    style="border:none;background:rgba(220,38,38,0.1);color:#dc2626;width:100%;">
+                    <span class="nav-icon">🚪</span><span class="nav-label">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header class="top-header">
+                <div class="header-title">
+                    <h2>Faculty Mentor Dashboard</h2>
+                    <p id="header-subtitle">Dashboard</p>
+                </div>
+                <div class="header-actions">
+                    <span class="header-date" id="current-date"></span>
+                </div>
+            </header>
+
+            <div class="page-content">
+
+                <!-- DASHBOARD -->
+                <div class="page active" id="page-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon gold">🎒</div>
+                            <div>
+                                <div class="stat-value" id="s-mentees">—</div>
+                                <div class="stat-label">My Mentees</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon blue">📅</div>
+                            <div>
+                                <div class="stat-value" id="s-meetings">—</div>
+                                <div class="stat-label">Total Meetings</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">✅</div>
+                            <div>
+                                <div class="stat-value" id="s-upcoming">—</div>
+                                <div class="stat-label">Upcoming</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon red">💬</div>
+                            <div>
+                                <div class="stat-value" id="s-unread">—</div>
+                                <div class="stat-label">Unread Messages</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">🎒</span>My Mentees</div>
+                                <button class="btn btn-outline btn-sm" onclick="showPage('mentees');loadMentees()">View
+                                    All</button>
+                            </div>
+                            <div id="dash-mentees"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📅</span>Upcoming Meetings</div>
+                            </div>
+                            <div id="dash-meetings"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MENTEES -->
+                <div class="page" id="page-mentees">
+                    <div class="card">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">🎒</span>My Mentees</div>
+                            <input id="mentee-search" type="text" placeholder="🔍 Search…"
+                                style="padding:8px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.875rem;width:200px;" />
+                        </div>
+                        <div id="mentees-grid"
+                            style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:4px;">
+                            <div style="text-align:center;padding:24px;">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MENTEE PROFILE -->
+                <div class="page" id="page-mentee-profile">
+                    <button class="btn btn-outline btn-sm" style="margin-bottom:16px;"
+                        onclick="showPage('mentees');loadMentees()">← Back to Mentees</button>
+                    <div id="profile-header"></div>
+                    <div class="grid-2" style="margin-top:20px;">
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📄</span>Documents</div>
+                            </div>
+                            <div id="profile-docs"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">📝</span>Remarks</div>
+                            </div>
+                            <div id="profile-remarks"></div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-top:20px;">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📅</span>Meeting History</div>
+                        </div>
+                        <div id="profile-meetings"></div>
+                    </div>
+                </div>
+
+                <!-- MEETINGS -->
+                <div class="page" id="page-meetings">
+                    <div class="card" style="margin-bottom:20px;">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📅</span>Schedule a Meeting</div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+                            <div class="form-group"><label>Mentee</label><select id="meet-mentee">
+                                    <option value="">— Choose —</option>
+                                </select></div>
+                            <div class="form-group"><label>Date & Time</label><input type="datetime-local"
+                                    id="meet-datetime" /></div>
+                            <div class="form-group"><label>Venue</label><input type="text" id="meet-venue"
+                                    placeholder="Room 201, CSE Block" /></div>
+                        </div>
+                        <div class="form-group"><label>Agenda</label><textarea id="meet-agenda" rows="2"
+                                placeholder="Meeting agenda…"></textarea></div>
+                        <button class="btn btn-primary" onclick="scheduleMeeting()">📅 Schedule Meeting</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📋</span>Meeting History</div>
+                            <button class="btn btn-outline btn-sm" onclick="loadMeetings()">↻ Refresh</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Mentee</th>
+                                        <th>Date & Time</th>
+                                        <th>Venue</th>
+                                        <th>Agenda</th>
+                                        <th>Status</th>
+                                        <th>Remarks</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="meetings-tbody">
+                                    <tr>
+                                        <td colspan="7" style="text-align:center;padding:24px;">
+                                            <div class="spinner" style="margin:auto;"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MESSAGES -->
+                <div class="page" id="page-messages">
+                    <div class="grid-2">
+                        <div class="card" style="margin-bottom:0;">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">🎒</span>Select Mentee</div>
+                            </div>
+                            <div id="msg-mentee-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+                        </div>
+                        <div class="card" style="margin-bottom:0;">
+                            <div class="card-header-row">
+                                <div class="card-title"><span class="icon">💬</span>Chat</div>
+                            </div>
+                            <div id="chat-placeholder" class="empty-state">
+                                <div class="icon">💬</div>
+                                <p>Select a mentee to start messaging</p>
+                            </div>
+                            <div class="chat-container" id="chat-area" style="display:none;">
+                                <div class="chat-messages" id="chat-messages"></div>
+                                <div class="chat-input-row">
+                                    <input type="text" id="chat-input" placeholder="Type a message…"
+                                        onkeydown="if(event.key==='Enter')sendMessage()" />
+                                    <button class="btn btn-primary btn-sm" onclick="sendMessage()">Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANNOUNCEMENTS -->
+                <div class="page" id="page-announcements">
+                    <div class="card" style="margin-bottom:20px;">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📢</span>Post Announcement</div>
+                        </div>
+                        <div class="form-group"><label>Title</label><input type="text" id="ann-title"
+                                placeholder="Announcement title" /></div>
+                        <div class="form-group"><label>Content</label><textarea id="ann-content" rows="3"
+                                placeholder="Write announcement content…"></textarea></div>
+                        <button class="btn btn-primary" onclick="postAnnouncement()">📢 Post</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📋</span>Posted Announcements</div>
+                        </div>
+                        <div id="ann-list"></div>
+                    </div>
+                </div>
+
+                <!-- REMARKS -->
+                <div class="page" id="page-remarks">
+                    <div class="card">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📝</span>Add Performance Remarks</div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group"><label>Mentee</label><select id="rmk-mentee">
+                                    <option value="">— Choose —</option>
+                                </select></div>
+                            <div class="form-group"><label>Semester</label><input type="text" id="rmk-semester"
+                                    placeholder="e.g. Semester 4" /></div>
+                        </div>
+                        <div class="form-group" style="max-width:220px;"><label>CGPA</label><input type="text"
+                                id="rmk-cgpa" placeholder="e.g. 8.5" /></div>
+                        <div class="form-group"><label>Remarks / Notes</label><textarea id="rmk-text" rows="4"
+                                placeholder="Detailed performance remarks…"></textarea></div>
+                        <button class="btn btn-primary" onclick="saveRemarks()">💾 Save Remarks</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Meeting Modal -->
+    <div class="modal-overlay" id="modal-meeting">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Update Meeting</h3><button class="modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="um-id" />
+                <div class="form-group"><label>Status</label>
+                    <select id="um-status">
+                        <option value="scheduled">Scheduled</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Post-meeting Remarks</label><textarea id="um-remarks"
+                        rows="3"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="hideModal('modal-meeting')">Cancel</button>
+                <button class="btn btn-primary" onclick="updateMeeting()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+    <script src="/js/api.js"></script>
+    <script>
+        const user = requireAuth(['mentor']);
+        initSidebar(user);
+        setCurrentDate();
+        let myMentees = [];
+        let activeChatMenteeId = null;
+
+        async function loadDashboard() {
+            try {
+                const d = await API.get('/mentor/dashboard');
+                document.getElementById('s-mentees').textContent = d.menteeCount;
+                document.getElementById('s-meetings').textContent = d.totalMeetings;
+                document.getElementById('s-upcoming').textContent = d.upcomingMeetings;
+                document.getElementById('s-unread').textContent = d.unreadMessages;
+                if (d.unreadMessages > 0) { const b = document.getElementById('unread-badge'); b.style.display = 'inline'; b.textContent = d.unreadMessages; }
+
+                const mentees = await API.get('/mentor/mentees');
+                const de = document.getElementById('dash-mentees');
+                de.innerHTML = mentees.length === 0
+                    ? '<div class="empty-state"><div class="icon">🎒</div><p>No mentees assigned yet</p></div>'
+                    : mentees.slice(0, 5).map(m => `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f4f8;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">${initials(m.name)}</div>
+          <div><div style="font-weight:600;font-size:0.875rem;">${m.name}</div><div style="font-size:0.75rem;color:#6b7280;">${m.rollno || '—'} · ${m.year || '—'}</div></div>
+        </div>`).join('');
+
+                const meetings = await API.get('/mentor/meetings');
+                const upcoming = meetings.filter(m => m.status === 'scheduled').slice(0, 3);
+                const dm = document.getElementById('dash-meetings');
+                dm.innerHTML = upcoming.length === 0
+                    ? '<div class="empty-state"><div class="icon">📅</div><p>No upcoming meetings</p></div>'
+                    : upcoming.map(m => `<div style="padding:12px;background:#f0f4f8;border-radius:10px;margin-bottom:8px;border-left:4px solid #0d1b4b;">
+          <div style="font-weight:700;font-size:0.875rem;">${m.mentee_name}</div>
+          <div style="font-size:0.78rem;color:#6b7280;">📅 ${formatDate(m.scheduled_at)} · 📍 ${m.venue || 'TBD'}</div>
+        </div>`).join('');
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadMentees() {
+            myMentees = await API.get('/mentor/mentees');
+            const q = document.getElementById('mentee-search').value.toLowerCase();
+            const filtered = myMentees.filter(m => m.name.toLowerCase().includes(q) || (m.rollno || '').toLowerCase().includes(q));
+            const grid = document.getElementById('mentees-grid');
+            grid.innerHTML = filtered.length === 0
+                ? '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎒</div><p>No mentees found</p></div>'
+                : filtered.map(m => `<div class="mentee-card" onclick="viewProfile(${m.id})">
+        <div class="mc-header">
+          <div class="mc-avatar">${initials(m.name)}</div>
+          <div><div class="mc-name">${m.name}</div><div class="mc-roll">${m.rollno || '—'}</div></div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-info-item">🏛 ${m.department || '—'}</div>
+          <div class="mc-info-item">📅 ${m.year || '—'}</div>
+          <div class="mc-info-item">📧 ${m.email}</div>
+          <div class="mc-info-item">📞 ${m.phone || '—'}</div>
+        </div>
+      </div>`).join('');
+            ['meet-mentee', 'rmk-mentee'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<option value="">— Choose Mentee —</option>' + myMentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
+            });
+        }
+        document.getElementById('mentee-search').addEventListener('input', loadMentees);
+
+        async function viewProfile(id) {
+            try {
+                const d = await API.get(`/mentor/mentee/${id}/profile`);
+                const m = d.mentee;
+                showPage('mentee-profile');
+                document.getElementById('profile-header').innerHTML = `
+      <div class="profile-card">
+        <div class="profile-avatar">${initials(m.name)}</div>
+        <div class="profile-info">
+          <h3>${m.name}</h3><p>${m.email} · ${m.phone || '—'}</p>
+          <div class="tags">
+            <span class="profile-tag">🎓 ${m.rollno || '—'}</span>
+            <span class="profile-tag">📅 ${m.year || '—'}</span>
+            <span class="profile-tag">🏛 ${m.department || '—'}</span>
+          </div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:10px;">
+          <button class="btn btn-gold btn-sm" onclick="showPage('messages');startChat(${m.id},'${m.name}')">💬 Message</button>
+          <a href="/api/reports/mentee/${m.id}/pdf" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;">📥 PDF</a>
+        </div>
+      </div>`;
+                const docsEl = document.getElementById('profile-docs');
+                docsEl.innerHTML = d.docs.length === 0 ? '<div class="empty-state"><div class="icon">📄</div><p>No documents</p></div>'
+                    : d.docs.map(doc => `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:#f0f4f8;border-radius:8px;margin-bottom:8px;">
+          <div><div style="font-weight:600;font-size:0.875rem;">📄 ${doc.original_name}</div><div style="font-size:0.75rem;color:#6b7280;">${doc.type} · ${formatDateOnly(doc.upload_date)}</div></div>
+          <a href="/uploads/${doc.filename}" target="_blank" class="btn btn-outline btn-sm">⬇ View</a>
+        </div>`).join('');
+                const rmkEl = document.getElementById('profile-remarks');
+                rmkEl.innerHTML = d.remarks.length === 0 ? '<div class="empty-state"><div class="icon">📝</div><p>No remarks</p></div>'
+                    : d.remarks.map(r => `<div style="padding:12px;background:#f0f4f8;border-radius:8px;margin-bottom:8px;border-left:4px solid #0d1b4b;">
+          <div style="font-weight:700;font-size:0.8rem;color:#0d1b4b;">${r.semester || '—'} · CGPA: ${r.cgpa || '—'}</div>
+          <p style="font-size:0.83rem;margin-top:4px;">${r.remarks}</p>
+        </div>`).join('');
+                const meetEl = document.getElementById('profile-meetings');
+                meetEl.innerHTML = d.meetings.length === 0 ? '<div class="empty-state"><div class="icon">📅</div><p>No meetings</p></div>'
+                    : '<div class="timeline">' + d.meetings.map(mt => `<div class="timeline-item ${mt.status}">
+          <div><div style="display:flex;gap:10px;align-items:center;"><strong>${formatDate(mt.scheduled_at)}</strong><span class="badge badge-${mt.status}">${mt.status}</span></div>
+          <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">📍 ${mt.venue || 'N/A'} · ${mt.agenda || ''}</div>
+          ${mt.remarks ? `<div style="font-size:0.8rem;margin-top:3px;">💬 ${mt.remarks}</div>` : ''}
+          </div></div>`).join('') + '</div>';
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadMeetings() {
+            const meetings = await API.get('/mentor/meetings');
+            const tbody = document.getElementById('meetings-tbody');
+            tbody.innerHTML = meetings.length === 0
+                ? '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6b7280;">No meetings yet</td></tr>'
+                : meetings.map(m => `<tr>
+        <td><strong>${m.mentee_name}</strong><div style="font-size:0.75rem;color:#6b7280;">${m.rollno || ''}</div></td>
+        <td>${formatDate(m.scheduled_at)}</td><td>${m.venue || '—'}</td>
+        <td style="max-width:150px;font-size:0.82rem;">${m.agenda || '—'}</td>
+        <td><span class="badge badge-${m.status}">${m.status}</span></td>
+        <td style="max-width:120px;font-size:0.82rem;">${m.remarks || '—'}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="openMeetingEdit(${m.id},'${m.status}','${(m.remarks || '').replace(/'/g, '')}')">✏</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMeeting(${m.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+        }
+        async function scheduleMeeting() {
+            const mentee_id = document.getElementById('meet-mentee').value;
+            const scheduled_at = document.getElementById('meet-datetime').value;
+            const venue = document.getElementById('meet-venue').value;
+            const agenda = document.getElementById('meet-agenda').value;
+            if (!mentee_id || !scheduled_at) { toast('Select mentee and date', 'warning'); return; }
+            try {
+                await API.post('/mentor/meetings', { mentee_id, scheduled_at, venue, agenda });
+                toast('Meeting scheduled!', 'success');
+                ['meet-datetime', 'meet-venue', 'meet-agenda'].forEach(id => document.getElementById(id).value = '');
+                loadMeetings();
+            } catch (e) { toast(e.message, 'error'); }
+        }
+        function openMeetingEdit(id, status, remarks) {
+            document.getElementById('um-id').value = id;
+            document.getElementById('um-status').value = status;
+            document.getElementById('um-remarks').value = remarks;
+            showModal('modal-meeting');
+        }
+        async function updateMeeting() {
+            const id = document.getElementById('um-id').value;
+            try { await API.put(`/mentor/meetings/${id}`, { status: document.getElementById('um-status').value, remarks: document.getElementById('um-remarks').value }); hideModal('modal-meeting'); toast('Updated', 'success'); loadMeetings(); }
+            catch (e) { toast(e.message, 'error'); }
+        }
+        async function deleteMeeting(id) {
+            if (!confirm('Delete this meeting?')) return;
+            try { await API.delete(`/mentor/meetings/${id}`); toast('Deleted', 'success'); loadMeetings(); } catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadMessages() {
+            const mentees = await API.get('/mentor/mentees');
+            document.getElementById('msg-mentee-list').innerHTML = mentees.map(m => `
+    <div onclick="startChat(${m.id},'${m.name}')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1.5px solid #e5e7eb;transition:all 0.2s;" onmouseover="this.style.borderColor='#0d1b4b'" onmouseout="this.style.borderColor='#e5e7eb'">
+      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">${initials(m.name)}</div>
+      <div><div style="font-weight:600;font-size:0.875rem;">${m.name}</div><div style="font-size:0.75rem;color:#6b7280;">${m.rollno || '—'}</div></div>
+    </div>`).join('');
+        }
+        async function startChat(menteeId, menteeName) {
+            activeChatMenteeId = menteeId;
+            document.getElementById('chat-placeholder').style.display = 'none';
+            document.getElementById('chat-area').style.display = 'flex';
+            const msgs = await API.get(`/mentor/messages/${menteeId}`);
+            const box = document.getElementById('chat-messages');
+            box.innerHTML = msgs.map(m => `<div class="chat-bubble ${m.sender_id === user.id ? 'sent' : 'received'}"><div>${m.content}</div><div class="meta">${formatDate(m.timestamp)}</div></div>`).join('')
+                || '<div class="empty-state"><div class="icon">💬</div><p>No messages yet</p></div>';
+            box.scrollTop = box.scrollHeight;
+            document.getElementById('unread-badge').style.display = 'none';
+        }
+        async function sendMessage() {
+            const content = document.getElementById('chat-input').value.trim();
+            if (!content || !activeChatMenteeId) return;
+            try { await API.post('/mentor/messages', { receiver_id: activeChatMenteeId, content }); document.getElementById('chat-input').value = ''; startChat(activeChatMenteeId, ''); }
+            catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function loadAnnouncements() {
+            const ann = await API.get('/mentor/announcements');
+            const el = document.getElementById('ann-list');
+            el.innerHTML = ann.length === 0 ? '<div class="empty-state"><div class="icon">📢</div><p>No announcements posted</p></div>'
+                : ann.map(a => `<div class="announcement-item"><h4>${a.title}</h4><p>${a.content}</p><div class="ann-date">${formatDate(a.created_at)}</div></div>`).join('');
+        }
+        async function postAnnouncement() {
+            const title = document.getElementById('ann-title').value;
+            const content = document.getElementById('ann-content').value;
+            if (!title || !content) { toast('Fill title and content', 'warning'); return; }
+            try { await API.post('/mentor/announcements', { title, content }); toast('Posted', 'success'); document.getElementById('ann-title').value = ''; document.getElementById('ann-content').value = ''; loadAnnouncements(); }
+            catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function saveRemarks() {
+            const mentee_id = document.getElementById('rmk-mentee').value;
+            const remarks = document.getElementById('rmk-text').value;
+            if (!mentee_id || !remarks) { toast('Select mentee and fill remarks', 'warning'); return; }
+            try {
+                await API.post('/mentor/remarks', { mentee_id, remarks, semester: document.getElementById('rmk-semester').value, cgpa: document.getElementById('rmk-cgpa').value });
+                toast('Remarks saved', 'success');
+                ['rmk-text', 'rmk-semester', 'rmk-cgpa'].forEach(id => document.getElementById(id).value = '');
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        const pageLoaders = {
+            dashboard: loadDashboard,
+            mentees: loadMentees,
+            meetings: () => { loadMentees(); loadMeetings(); },
+            messages: loadMessages,
+            announcements: loadAnnouncements,
+            remarks: loadMentees
+        };
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+            item.addEventListener('click', () => { const p = item.dataset.page; showPage(p); pageLoaders[p]?.(); });
+        });
+
+        loadDashboard();
+        loadMentees();
+    </script>
+</body>
+
+</html>
