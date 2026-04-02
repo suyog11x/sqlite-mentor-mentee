@@ -56,7 +56,7 @@
                         autocomplete="current-password" />
                 </div>
                 <div id="login-error"
-                    style="display:none;margin-bottom:14px;padding:12px 16px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;color:#b91c1c;font-size:0.875rem;font-weight:600;display:flex;align-items:center;gap:8px;">
+                    style="display:none;margin-bottom:14px;padding:12px 16px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;color:#b91c1c;font-size:0.875rem;font-weight:600;align-items:center;gap:8px;">
                     <span style="font-size:1.1rem;">⚠️</span>
                     <span id="login-error-msg"></span>
                 </div>
@@ -98,63 +98,73 @@
 
     <script src="/js/api.js"></script>
     <script>
-        // Redirect if already logged in
-        const existingUser = getUser();
-        const existingToken = localStorage.getItem('mm_token');
-        if (existingUser && existingToken) {
-            redirectByRole(existingUser.role);
-        }
-
         function redirectByRole(role) {
             if (role === 'admin') window.location.href = '/admin/';
             else if (role === 'mentor') window.location.href = '/mentor/';
             else window.location.href = '/mentee/';
         }
 
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            const err = document.getElementById('login-error');
-            btn.disabled = true; btn.textContent = 'Signing in…';
-            err.style.display = 'none';
-            try {
-                const data = await API.post('/auth/login', {
-                    email: document.getElementById('email').value,
-                    password: document.getElementById('password').value
-                });
-                localStorage.setItem('mm_token', data.token);
-                localStorage.setItem('mm_user', JSON.stringify(data.user));
-                redirectByRole(data.user.role);
-            } catch (ex) {
+        document.addEventListener('DOMContentLoaded', function () {
+            // Redirect if already logged in
+            const existingUser = getUser();
+            const existingToken = localStorage.getItem('mm_token');
+            if (existingUser && existingToken) {
+                redirectByRole(existingUser.role);
+                return;
+            }
+
+            // Login form handler
+            document.getElementById('login-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const btn = document.getElementById('login-btn');
                 const errDiv = document.getElementById('login-error');
                 const errMsg = document.getElementById('login-error-msg');
-                // Map server message to user-friendly text
-                let msg = '❌ Wrong password! Please try again.';
-                if (ex.message && ex.message.toLowerCase().includes('email')) {
-                    msg = '📧 Email not registered. Please check and try again.';
-                } else if (ex.message && ex.message.toLowerCase().includes('password')) {
-                    msg = '🔐 Wrong password! Please check your password and try again.';
-                }
-                errMsg.textContent = msg;
-                errDiv.style.display = 'flex';
-                // Shake the password field
-                const pwdField = document.getElementById('password');
-                pwdField.style.animation = 'shake 0.4s ease';
-                pwdField.value = '';
-                pwdField.focus();
-                setTimeout(() => pwdField.style.animation = '', 500);
-                btn.disabled = false; btn.textContent = 'Sign In';
-            }
-        }
-        });
 
-        document.querySelectorAll('.demo-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.getElementById('email').value = btn.dataset.email;
-                document.getElementById('password').value = btn.dataset.pass;
+                btn.disabled = true;
+                btn.querySelector('span').textContent = 'Signing in…';
+                errDiv.style.display = 'none';
+
+                try {
+                    const data = await API.post('/auth/login', {
+                        email: document.getElementById('email').value.trim(),
+                        password: document.getElementById('password').value
+                    });
+
+                    if (!data || !data.token) throw new Error('No token received');
+
+                    localStorage.setItem('mm_token', data.token);
+                    localStorage.setItem('mm_user', JSON.stringify(data.user));
+                    redirectByRole(data.user.role);
+
+                } catch (ex) {
+                    let msg = '❌ Wrong password! Please try again.';
+                    if (ex.message && ex.message.toLowerCase().includes('email')) {
+                        msg = '📧 Email not registered. Please check and try again.';
+                    } else if (ex.message && ex.message.toLowerCase().includes('invalid')) {
+                        msg = '🔐 Invalid email or password. Please try again.';
+                    }
+                    errMsg.textContent = msg;
+                    errDiv.style.display = 'flex';
+
+                    const pwdField = document.getElementById('password');
+                    pwdField.style.animation = 'shake 0.4s ease';
+                    pwdField.value = '';
+                    pwdField.focus();
+                    setTimeout(() => pwdField.style.animation = '', 500);
+                    btn.disabled = false;
+                    btn.querySelector('span').textContent = 'Sign In';
+                }
             });
-            btn.addEventListener('mouseover', () => btn.style.borderColor = '#c9a84c');
-            btn.addEventListener('mouseout', () => btn.style.borderColor = '#e5e7eb');
+
+            // Demo buttons
+            document.querySelectorAll('.demo-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.getElementById('email').value = btn.dataset.email;
+                    document.getElementById('password').value = btn.dataset.pass;
+                });
+                btn.addEventListener('mouseover', function () { btn.style.borderColor = '#c9a84c'; });
+                btn.addEventListener('mouseout', function () { btn.style.borderColor = '#e5e7eb'; });
+            });
         });
     </script>
 </body>

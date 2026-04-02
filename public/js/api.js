@@ -13,7 +13,7 @@ const API = {
             headers,
             body: isFormData ? body : (body ? JSON.stringify(body) : null)
         });
-        if (res.status === 401) { logout(); return; }
+        if (res.status === 401 && !path.includes('/auth/login')) { logout(); return; }
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Request failed');
         return data;

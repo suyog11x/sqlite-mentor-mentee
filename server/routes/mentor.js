@@ -71,6 +71,31 @@ router.delete('/meetings/:id', (req, res) => {
     res.json({ message: 'Meeting deleted' });
 });
 
+// GET /api/mentor/messages/summary  — last msg + unread count per mentee
+router.get('/messages/summary', (req, res) => {
+    const mentorId = req.user.id;
+    const mentees = db.prepare(`
+        SELECT u.id FROM mentor_mentee mm JOIN users u ON mm.mentee_id=u.id WHERE mm.mentor_id=?
+    `).all(mentorId);
+
+    const result = mentees.map(({ id: menteeId }) => {
+        const last = db.prepare(`
+            SELECT content, timestamp, sender_id, is_read
+            FROM messages
+            WHERE (sender_id=? AND receiver_id=?) OR (sender_id=? AND receiver_id=?)
+            ORDER BY timestamp DESC LIMIT 1
+        `).get(menteeId, mentorId, mentorId, menteeId);
+
+        const unread = db.prepare(`
+            SELECT COUNT(*) as c FROM messages WHERE receiver_id=? AND sender_id=? AND is_read=0
+        `).get(mentorId, menteeId).c;
+
+        return { menteeId, lastMessage: last || null, unread };
+    });
+
+    res.json(result);
+});
+
 // GET /api/mentor/messages/:menteeId
 router.get('/messages/:menteeId', (req, res) => {
     const menteeId = req.params.menteeId;

@@ -231,6 +231,14 @@
                                 <p>Select a mentee to start messaging</p>
                             </div>
                             <div class="chat-container" id="chat-area" style="display:none;">
+                                <!-- Active chat header -->
+                                <div id="chat-header" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:#f8fafc;border-radius:0;">
+                                    <div id="chat-header-avatar" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">?</div>
+                                    <div>
+                                        <div id="chat-header-name" style="font-weight:700;font-size:0.9rem;color:#0d1b4b;">—</div>
+                                        <div style="font-size:0.72rem;color:#6b7280;">Mentee</div>
+                                    </div>
+                                </div>
                                 <div class="chat-messages" id="chat-messages"></div>
                                 <div class="chat-input-row">
                                     <input type="text" id="chat-input" placeholder="Type a message…"
@@ -467,21 +475,76 @@
         }
 
         async function loadMessages() {
-            const mentees = await API.get('/mentor/mentees');
-            document.getElementById('msg-mentee-list').innerHTML = mentees.map(m => `
-    <div onclick="startChat(${m.id},'${m.name}')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1.5px solid #e5e7eb;transition:all 0.2s;" onmouseover="this.style.borderColor='#0d1b4b'" onmouseout="this.style.borderColor='#e5e7eb'">
-      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">${initials(m.name)}</div>
-      <div><div style="font-weight:600;font-size:0.875rem;">${m.name}</div><div style="font-size:0.75rem;color:#6b7280;">${m.rollno || '—'}</div></div>
-    </div>`).join('');
+            const [mentees, summaries] = await Promise.all([
+                API.get('/mentor/mentees'),
+                API.get('/mentor/messages/summary')
+            ]);
+
+            // Build a quick lookup: menteeId → summary
+            const sumMap = {};
+            summaries.forEach(s => { sumMap[s.menteeId] = s; });
+
+            // Sort: mentees with unread first, then by last message timestamp desc
+            mentees.sort((a, b) => {
+                const sa = sumMap[a.id] || {}, sb = sumMap[b.id] || {};
+                if ((sb.unread > 0) !== (sa.unread > 0)) return sb.unread - sa.unread;
+                const ta = sa.lastMessage?.timestamp || '';
+                const tb = sb.lastMessage?.timestamp || '';
+                return tb.localeCompare(ta);
+            });
+
+            document.getElementById('msg-mentee-list').innerHTML = mentees.map(m => {
+                const s = sumMap[m.id] || { unread: 0, lastMessage: null };
+                const lm = s.lastMessage;
+                const isFromMe = lm && lm.sender_id === user.id;
+                const preview = lm
+                    ? `${isFromMe ? '<span style="color:#6b7280">You: </span>' : `<span style="color:#0d1b4b;font-weight:600">${m.name.split(' ')[0]}: </span>`}${lm.content.length > 38 ? lm.content.slice(0, 38) + '…' : lm.content}`
+                    : '<span style="color:#9ca3af;font-style:italic;">No messages yet</span>';
+                const timeStr = lm ? formatDate(lm.timestamp) : '';
+                const unreadBadge = s.unread > 0
+                    ? `<span style="background:#dc2626;color:#fff;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:auto;flex-shrink:0;">${s.unread}</span>`
+                    : '';
+                const isActive = activeChatMenteeId === m.id;
+
+                return `<div onclick="startChat(${m.id},'${m.name}')" id="mentee-row-${m.id}"
+                    style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;
+                           border:1.5px solid ${isActive ? '#0d1b4b' : (s.unread > 0 ? '#fca5a5' : '#e5e7eb')};
+                           background:${isActive ? 'rgba(13,27,75,0.05)' : (s.unread > 0 ? 'rgba(220,38,38,0.03)' : '#fff')};
+                           transition:all 0.18s;"
+                    onmouseover="this.style.borderColor='#0d1b4b';this.style.background='rgba(13,27,75,0.04)'"
+                    onmouseout="this.style.borderColor='${isActive ? '#0d1b4b' : (s.unread > 0 ? '#fca5a5' : '#e5e7eb')}';this.style.background='${isActive ? 'rgba(13,27,75,0.05)' : (s.unread > 0 ? 'rgba(220,38,38,0.03)' : '#fff')}'">
+                    <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;position:relative;">
+                        ${initials(m.name)}
+                        ${s.unread > 0 ? '<span style="position:absolute;top:-2px;right:-2px;width:10px;height:10px;background:#dc2626;border-radius:50%;border:2px solid #fff;"></span>' : ''}
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:2px;">
+                            <span style="font-weight:${s.unread > 0 ? '700' : '600'};font-size:0.875rem;color:#0d1b4b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</span>
+                            <span style="font-size:0.68rem;color:#9ca3af;white-space:nowrap;flex-shrink:0;">${timeStr ? new Date(timeStr).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
+                        </div>
+                        <div style="font-size:0.775rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;">
+                            ${preview}${unreadBadge}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
         }
         async function startChat(menteeId, menteeName) {
             activeChatMenteeId = menteeId;
             document.getElementById('chat-placeholder').style.display = 'none';
             document.getElementById('chat-area').style.display = 'flex';
+
+            // Update chat header
+            document.getElementById('chat-header-avatar').textContent = initials(menteeName);
+            document.getElementById('chat-header-name').textContent = menteeName;
+
             const msgs = await API.get(`/mentor/messages/${menteeId}`);
             const box = document.getElementById('chat-messages');
-            box.innerHTML = msgs.map(m => `<div class="chat-bubble ${m.sender_id === user.id ? 'sent' : 'received'}"><div>${m.content}</div><div class="meta">${formatDate(m.timestamp)}</div></div>`).join('')
-                || '<div class="empty-state"><div class="icon">💬</div><p>No messages yet</p></div>';
+            box.innerHTML = msgs.map(m => {
+                const isMe = m.sender_id === user.id;
+                const senderLabel = isMe ? '' : `<div style="font-size:0.68rem;font-weight:700;color:#0d1b4b;margin-bottom:3px;">${menteeName}</div>`;
+                return `<div class="chat-bubble ${isMe ? 'sent' : 'received'}">${senderLabel}<div>${m.content}</div><div class="meta">${formatDate(m.timestamp)}</div></div>`;
+            }).join('') || '<div class="empty-state"><div class="icon">💬</div><p>No messages yet</p></div>';
             box.scrollTop = box.scrollHeight;
             document.getElementById('unread-badge').style.display = 'none';
         }

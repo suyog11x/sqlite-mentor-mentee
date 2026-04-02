@@ -84,6 +84,16 @@ router.post('/messages', (req, res) => {
     res.json({ id: result.lastInsertRowid, message: 'Message sent' });
 });
 
+// GET /api/mentee/profile
+router.get('/profile', (req, res) => {
+    const user = db.prepare(`
+        SELECT id, name, email, department, phone, rollno, year, created_at
+        FROM users WHERE id=?
+    `).get(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+});
+
 // GET /api/mentee/feedback
 router.get('/feedback', (req, res) => {
     const remarks = db.prepare(`

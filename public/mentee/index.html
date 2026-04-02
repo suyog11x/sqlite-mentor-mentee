@@ -21,13 +21,14 @@
                     </div>
                 </div>
             </div>
-            <div class="sidebar-user">
+            <div class="sidebar-user" id="btn-profile" title="View my profile" style="cursor:pointer;">
                 <div class="sidebar-user-info">
                     <div class="avatar" id="sidebar-avatar">S</div>
-                    <div>
+                    <div style="flex:1;min-width:0;">
                         <div class="user-name" id="sidebar-username">Student</div>
                         <div class="user-role" id="sidebar-role">Mentee</div>
                     </div>
+                    <span style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-left:4px;">👤</span>
                 </div>
             </div>
             <nav class="sidebar-nav">
@@ -217,12 +218,90 @@
         </div>
     </div>
 
+    <!-- PROFILE MODAL -->
+    <div class="modal-overlay" id="modal-profile">
+        <div class="modal" style="max-width:480px;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0d1b4b,#1a2f7a);border-radius:16px 16px 0 0;">
+                <h3 style="color:#fff;display:flex;align-items:center;gap:10px;">👤 My Profile</h3>
+                <button class="modal-close" style="color:rgba(255,255,255,0.6);">✕</button>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <!-- Avatar banner -->
+                <div style="background:linear-gradient(135deg,#0d1b4b,#1a2f7a);padding:0 24px 28px;display:flex;align-items:center;gap:18px;">
+                    <div id="profile-avatar-big" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#c9a84c,#a07c30);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#fff;border:3px solid rgba(255,255,255,0.3);flex-shrink:0;">S</div>
+                    <div>
+                        <div id="profile-name" style="font-size:1.15rem;font-weight:700;color:#fff;">—</div>
+                        <div id="profile-role-tag" style="font-size:0.72rem;color:#c9a84c;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Mentee</div>
+                    </div>
+                </div>
+                <!-- Details -->
+                <div style="padding:20px 24px;display:flex;flex-direction:column;gap:0;">
+                    <div class="profile-detail-row">
+                        <span class="profile-detail-icon">🪪</span>
+                        <div>
+                            <div class="profile-detail-label">USN / Roll No</div>
+                            <div class="profile-detail-value" id="profile-rollno">—</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail-row">
+                        <span class="profile-detail-icon">📅</span>
+                        <div>
+                            <div class="profile-detail-label">Year / Semester</div>
+                            <div class="profile-detail-value" id="profile-year">—</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail-row">
+                        <span class="profile-detail-icon">🏛</span>
+                        <div>
+                            <div class="profile-detail-label">Department</div>
+                            <div class="profile-detail-value" id="profile-dept">—</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail-row">
+                        <span class="profile-detail-icon">📧</span>
+                        <div>
+                            <div class="profile-detail-label">Email</div>
+                            <div class="profile-detail-value" id="profile-email">—</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail-row" style="border-bottom:none;">
+                        <span class="profile-detail-icon">📞</span>
+                        <div>
+                            <div class="profile-detail-label">Phone</div>
+                            <div class="profile-detail-value" id="profile-phone">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm modal-close">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast-container" class="toast-container"></div>
     <script src="/js/api.js"></script>
     <script>
         const user = requireAuth(['mentee']);
         initSidebar(user);
         setCurrentDate();
+
+        // ── Profile modal ──────────────────────────────────────────────
+        document.getElementById('btn-profile').addEventListener('click', async () => {
+            showModal('modal-profile');
+            try {
+                const p = await API.get('/mentee/profile');
+                document.getElementById('profile-avatar-big').textContent = initials(p.name);
+                document.getElementById('profile-name').textContent   = p.name || '—';
+                document.getElementById('profile-rollno').textContent  = p.rollno || '—';
+                document.getElementById('profile-year').textContent    = p.year   || '—';
+                document.getElementById('profile-dept').textContent    = p.department || '—';
+                document.getElementById('profile-email').textContent   = p.email || '—';
+                document.getElementById('profile-phone').textContent   = p.phone  || 'Not provided';
+            } catch (e) {
+                toast('Failed to load profile: ' + e.message, 'error');
+            }
+        });
 
         async function loadDashboard() {
             const data = await API.get('/mentee/dashboard');

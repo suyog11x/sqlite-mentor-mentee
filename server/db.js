@@ -143,4 +143,22 @@ if (!adminExists) {
   console.log('   Mentee: mentee@college.edu / mentee123');
 }
 
+// Always ensure demo account passwords are correct (fixes cloned DB hash mismatch)
+const demoAccounts = [
+  { email: 'admin@college.edu',  password: 'admin123'  },
+  { email: 'mentor@college.edu', password: 'mentor123' },
+  { email: 'mentee@college.edu', password: 'mentee123' },
+];
+for (const { email, password } of demoAccounts) {
+  const user = db.prepare('SELECT id, password_hash FROM users WHERE email = ?').get(email);
+  if (user) {
+    const valid = bcrypt.compareSync(password, user.password_hash);
+    if (!valid) {
+      const newHash = bcrypt.hashSync(password, 10);
+      db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
+      console.log(`🔑 Fixed password hash for ${email}`);
+    }
+  }
+}
+
 module.exports = db;
