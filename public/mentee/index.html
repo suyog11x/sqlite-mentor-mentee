@@ -71,21 +71,21 @@
                 <!-- DASHBOARD -->
                 <div class="page active" id="page-dashboard">
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card" style="cursor:pointer;" onclick="document.querySelector('.nav-item[data-page=\'documents\']').click()">
                             <div class="stat-icon gold">📄</div>
                             <div>
                                 <div class="stat-value" id="s-docs">—</div>
                                 <div class="stat-label">Documents Uploaded</div>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" style="cursor:pointer;" onclick="document.querySelector('.nav-item[data-page=\'meetings\']').click()">
                             <div class="stat-icon blue">📅</div>
                             <div>
                                 <div class="stat-value" id="s-upcoming">—</div>
                                 <div class="stat-label">Upcoming Meetings</div>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" style="cursor:pointer;" onclick="document.querySelector('.nav-item[data-page=\'messages\']').click()">
                             <div class="stat-icon red">💬</div>
                             <div>
                                 <div class="stat-value" id="s-unread">—</div>
