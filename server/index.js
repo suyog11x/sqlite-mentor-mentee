@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const connectDB = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,11 +19,12 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // API Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/mentor', require('./routes/mentor'));
-app.use('/api/mentee', require('./routes/mentee'));
-app.use('/api/reports', require('./routes/reports'));
+app.use('/api/auth',         require('./routes/auth'));
+app.use('/api/admin',        require('./routes/admin'));
+app.use('/api/admin/bulk-upload', require('./routes/bulk-upload'));
+app.use('/api/mentor',       require('./routes/mentor'));
+app.use('/api/mentee',       require('./routes/mentee'));
+app.use('/api/reports',      require('./routes/reports'));
 
 // SPA fallback — serve index.html for any non-API route
 app.get(/^(?!\/api).*/, (req, res) => {
@@ -35,10 +37,18 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-    console.log(`\n🎓 Mentor–Mentee System running at http://localhost:${PORT}`);
-    console.log(`   Demo accounts:`);
-    console.log(`     Admin:  admin@college.edu  / admin123`);
-    console.log(`     Mentor: mentor@college.edu / mentor123`);
-    console.log(`     Mentee: mentee@college.edu / mentee123\n`);
-});
+// Connect to MongoDB Atlas THEN start server
+connectDB()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`\n🎓  Mentor–Mentee System running at http://localhost:${PORT}`);
+            console.log(`   Demo accounts:`);
+            console.log(`     Admin:  admin@college.edu  / admin123`);
+            console.log(`     Mentor: mentor@college.edu / mentor123`);
+            console.log(`     Mentee: mentee@college.edu / mentee123\n`);
+        });
+    })
+    .catch(err => {
+        console.error('❌  Failed to connect to MongoDB:', err.message);
+        process.exit(1);
+    });

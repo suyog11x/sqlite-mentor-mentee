@@ -1,164 +1,112 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const db = new Database(path.join(__dirname, '../mentor_mentee.db'));
-
-// Enable WAL mode for better performance
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-// Create all tables
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('admin','mentor','mentee')),
-    department TEXT DEFAULT '',
-    phone TEXT DEFAULT '',
-    rollno TEXT DEFAULT '',
-    year TEXT DEFAULT '',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS mentor_mentee (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    mentor_id INTEGER NOT NULL,
-    mentee_id INTEGER NOT NULL UNIQUE,
-    assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(mentor_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(mentee_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS documents (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    mentee_id INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    original_name TEXT NOT NULL,
-    filename TEXT NOT NULL,
-    filepath TEXT NOT NULL,
-    upload_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(mentee_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS meetings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    mentor_id INTEGER NOT NULL,
-    mentee_id INTEGER NOT NULL,
-    scheduled_at DATETIME NOT NULL,
-    venue TEXT DEFAULT '',
-    agenda TEXT DEFAULT '',
-    remarks TEXT DEFAULT '',
-    status TEXT DEFAULT 'scheduled' CHECK(status IN ('scheduled','completed','cancelled')),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(mentor_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(mentee_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sender_id INTEGER NOT NULL,
-    receiver_id INTEGER NOT NULL,
-    content TEXT NOT NULL,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    is_read INTEGER DEFAULT 0,
-    FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(receiver_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS announcements (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    mentor_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(mentor_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS performance_remarks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    mentor_id INTEGER NOT NULL,
-    mentee_id INTEGER NOT NULL,
-    remarks TEXT NOT NULL,
-    semester TEXT DEFAULT '',
-    cgpa TEXT DEFAULT '',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(mentor_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(mentee_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS activity_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    action TEXT NOT NULL,
-    details TEXT DEFAULT '',
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-`);
-
-// Seed default admin if not exists
-const adminExists = db.prepare("SELECT id FROM users WHERE role='admin' LIMIT 1").get();
-if (!adminExists) {
-  const hash = bcrypt.hashSync('admin123', 10);
-  db.prepare(`INSERT INTO users (name, email, password_hash, role, department)
-              VALUES (?, ?, ?, 'admin', 'Administration')`)
-    .run('System Administrator', 'admin@college.edu', hash);
-
-  // Seed a demo mentor
-  const mentorHash = bcrypt.hashSync('mentor123', 10);
-  const mentorResult = db.prepare(`INSERT INTO users (name, email, password_hash, role, department)
-              VALUES (?, ?, ?, 'mentor', 'Computer Science')`)
-    .run('Dr. Ramesh Kumar', 'mentor@college.edu', mentorHash);
-
-  // Seed a demo mentee
-  const menteeHash = bcrypt.hashSync('mentee123', 10);
-  const menteeResult = db.prepare(`INSERT INTO users (name, email, password_hash, role, department, rollno, year)
-              VALUES (?, ?, ?, 'mentee', 'Computer Science', 'CS2024001', '2nd Year')`)
-    .run('Arjun Sharma', 'mentee@college.edu', menteeHash);
-
-  // Assign mentee to mentor
-  db.prepare(`INSERT INTO mentor_mentee (mentor_id, mentee_id) VALUES (?, ?)`)
-    .run(mentorResult.lastInsertRowid, menteeResult.lastInsertRowid);
-
-  // Demo meeting
-  db.prepare(`INSERT INTO meetings (mentor_id, mentee_id, scheduled_at, venue, agenda, status)
-              VALUES (?, ?, datetime('now', '+2 days'), 'Room 201, CSE Block', 'Academic progress review for Semester 4', 'scheduled')`)
-    .run(mentorResult.lastInsertRowid, menteeResult.lastInsertRowid);
-
-  // Demo message
-  db.prepare(`INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`)
-    .run(mentorResult.lastInsertRowid, menteeResult.lastInsertRowid,
-         'Welcome to the mentorship program! Please upload your course registration documents at the earliest.');
-
-  // Demo remark
-  db.prepare(`INSERT INTO performance_remarks (mentor_id, mentee_id, remarks, semester, cgpa) VALUES (?, ?, ?, ?, ?)`)
-    .run(mentorResult.lastInsertRowid, menteeResult.lastInsertRowid,
-         'Good academic performance. Needs to improve lab record submission punctuality.', 'Semester 3', '8.2');
-
-  console.log('✅ Database seeded with demo accounts');
-  console.log('   Admin:  admin@college.edu / admin123');
-  console.log('   Mentor: mentor@college.edu / mentor123');
-  console.log('   Mentee: mentee@college.edu / mentee123');
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+    console.error('❌  MONGODB_URI is not set in .env');
+    process.exit(1);
 }
 
-// Always ensure demo account passwords are correct (fixes cloned DB hash mismatch)
-const demoAccounts = [
-  { email: 'admin@college.edu',  password: 'admin123'  },
-  { email: 'mentor@college.edu', password: 'mentor123' },
-  { email: 'mentee@college.edu', password: 'mentee123' },
-];
-for (const { email, password } of demoAccounts) {
-  const user = db.prepare('SELECT id, password_hash FROM users WHERE email = ?').get(email);
-  if (user) {
-    const valid = bcrypt.compareSync(password, user.password_hash);
-    if (!valid) {
-      const newHash = bcrypt.hashSync(password, 10);
-      db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
-      console.log(`🔑 Fixed password hash for ${email}`);
+async function connectDB() {
+    await mongoose.connect(MONGODB_URI, {
+        maxPoolSize: 10,          // Handle up to 10 concurrent connections (scalable)
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+    });
+    console.log('✅  Connected to MongoDB Atlas');
+    await seedDemoData();
+}
+
+async function seedDemoData() {
+    const User = require('./models/User');
+    const MentorMentee = require('./models/MentorMentee');
+    const Meeting = require('./models/Meeting');
+    const Message = require('./models/Message');
+    const PerformanceRemark = require('./models/PerformanceRemark');
+
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (adminExists) {
+        // Ensure demo passwords are always valid (fixes cloned-DB hash mismatches)
+        const demos = [
+            { email: 'admin@college.edu',  password: 'admin123'  },
+            { email: 'mentor@college.edu', password: 'mentor123' },
+            { email: 'mentee@college.edu', password: 'mentee123' },
+        ];
+        for (const { email, password } of demos) {
+            const u = await User.findOne({ email });
+            if (u && !u.comparePassword(password)) {
+                u.passwordHash = bcrypt.hashSync(password, 10);
+                await u.save();
+                console.log(`🔑  Fixed password for ${email}`);
+            }
+        }
+        return;
     }
-  }
+
+    // Seed admin
+    const admin = await User.create({
+        name: 'System Administrator',
+        email: 'admin@college.edu',
+        passwordHash: bcrypt.hashSync('admin123', 10),
+        role: 'admin',
+        department: 'Administration',
+    });
+
+    // Seed mentor
+    const mentor = await User.create({
+        name: 'Dr. Ramesh Kumar',
+        email: 'mentor@college.edu',
+        passwordHash: bcrypt.hashSync('mentor123', 10),
+        role: 'mentor',
+        department: 'Computer Science',
+    });
+
+    // Seed mentee
+    const mentee = await User.create({
+        name: 'Arjun Sharma',
+        email: 'mentee@college.edu',
+        passwordHash: bcrypt.hashSync('mentee123', 10),
+        role: 'mentee',
+        department: 'Computer Science',
+        rollno: 'CS2024001',
+        year: '2nd Year',
+    });
+
+    // Assign mentee to mentor
+    await MentorMentee.create({ mentorId: mentor._id, menteeId: mentee._id });
+
+    // Demo meeting (2 days from now)
+    const meetingDate = new Date();
+    meetingDate.setDate(meetingDate.getDate() + 2);
+    await Meeting.create({
+        mentorId: mentor._id,
+        menteeId: mentee._id,
+        scheduledAt: meetingDate,
+        venue: 'Room 201, CSE Block',
+        agenda: 'Academic progress review for Semester 4',
+        status: 'scheduled',
+    });
+
+    // Demo message
+    await Message.create({
+        senderId: mentor._id,
+        receiverId: mentee._id,
+        content: 'Welcome to the mentorship program! Please upload your course registration documents at the earliest.',
+    });
+
+    // Demo remark
+    await PerformanceRemark.create({
+        mentorId: mentor._id,
+        menteeId: mentee._id,
+        remarks: 'Good academic performance. Needs to improve lab record submission punctuality.',
+        semester: 'Semester 3',
+        cgpa: '8.2',
+    });
+
+    console.log('✅  Database seeded with demo accounts');
+    console.log('   Admin:  admin@college.edu / admin123');
+    console.log('   Mentor: mentor@college.edu / mentor123');
+    console.log('   Mentee: mentee@college.edu / mentee123');
 }
 
-module.exports = db;
+module.exports = connectDB;
