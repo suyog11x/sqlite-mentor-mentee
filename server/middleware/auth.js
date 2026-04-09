@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+const jwt         = require('jsonwebtoken');
 const ActivityLog = require('../models/ActivityLog');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'mentor_mentee_secret';
@@ -9,11 +9,13 @@ function authenticate(req, res, next) {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.user = decoded;
-        // Fire-and-forget activity log (non-blocking)
-        ActivityLog.create({
-            userId: decoded.id,
-            action: `API ${req.method} ${req.path}`,
-        }).catch(() => {}); // silently ignore if logging fails
+        // Fire-and-forget activity log (non-blocking — runs synchronously but won't throw)
+        try {
+            ActivityLog.create({
+                userId: decoded.id,
+                action: `API ${req.method} ${req.path}`,
+            });
+        } catch (_) {}
         next();
     } catch (err) {
         return res.status(401).json({ error: 'Unauthorized: Invalid token' });

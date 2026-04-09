@@ -651,15 +651,43 @@
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#6b7280;padding:16px;">No mappings yet</td></tr>';
                     return;
                 }
-                tbody.innerHTML = mappings.map(m => `
-      <tr>
-        <td><strong>${m.mentor_name}</strong></td>
-        <td>${m.mentee_name}</td>
-        <td>${m.rollno || '—'}</td>
-        <td style="font-size:0.78rem;color:#6b7280">${formatDateOnly(m.assigned_at)}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="removeMapping(${m.id})">Remove</button></td>
-      </tr>
-    `).join('');
+
+                // Group mentees under each mentor
+                const groups = {};
+                const order  = [];
+                for (const m of mappings) {
+                    if (!groups[m.mentor_name]) { groups[m.mentor_name] = []; order.push(m.mentor_name); }
+                    groups[m.mentor_name].push(m);
+                }
+
+                let html = '';
+                for (const mentorName of order) {
+                    const rows = groups[mentorName];
+                    rows.forEach((m, idx) => {
+                        html += `<tr>`;
+                        if (idx === 0) {
+                            // Mentor cell spans all mentee rows for this mentor
+                            html += `<td rowspan="${rows.length}" style="
+                                vertical-align:middle;
+                                background:#f0f4ff;
+                                border-right:3px solid #c7d7ff;
+                                font-weight:700;
+                                color:#1e3a8a;
+                                font-size:0.85rem;
+                                padding:10px 12px;
+                            ">${mentorName}<br><span style="font-weight:400;color:#6b7280;font-size:0.75rem;">${rows.length} mentee${rows.length > 1 ? 's' : ''}</span></td>`;
+                        }
+                        html += `
+                            <td>${m.mentee_name}</td>
+                            <td>${m.rollno || '—'}</td>
+                            <td style="font-size:0.78rem;color:#6b7280">${formatDateOnly(m.assigned_at)}</td>
+                            <td><button class="btn btn-danger btn-sm" onclick="removeMapping(${m.id})">Remove</button></td>
+                        </tr>`;
+                    });
+                    // Subtle separator row between mentor groups
+                    html += `<tr><td colspan="5" style="padding:2px;background:#e5e7eb;"></td></tr>`;
+                }
+                tbody.innerHTML = html;
             } catch (e) { toast(e.message, 'error'); }
         }
 

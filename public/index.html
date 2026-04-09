@@ -88,6 +88,14 @@
                 </div>
             </div>
 
+            <div style="margin-top:16px;padding:14px 16px;background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;">
+                <p style="font-size:0.72rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🎓 Student Login Info</p>
+                <p style="font-size:0.78rem;color:#78350f;margin:0;line-height:1.6;">
+                    <strong>Email:</strong> <code style="background:#fef3c7;padding:1px 5px;border-radius:4px;">UID@students.git.edu</code><br>
+                    <strong>Password:</strong> <code style="background:#fef3c7;padding:1px 5px;border-radius:4px;">git@12345</code>
+                </p>
+            </div>
+
             <p style="margin-top:24px;text-align:center;font-size:0.75rem;color:#9ca3af;">
                 © 2025 College Mentorship System · All rights reserved
             </p>
@@ -137,20 +145,21 @@
                     redirectByRole(data.user.role);
 
                 } catch (ex) {
-                    let msg = '❌ Wrong password! Please try again.';
-                    if (ex.message && ex.message.toLowerCase().includes('email')) {
-                        msg = '📧 Email not registered. Please check and try again.';
-                    } else if (ex.message && ex.message.toLowerCase().includes('invalid')) {
-                        msg = '🔐 Invalid email or password. Please try again.';
+                    let msg = ex.message || 'Something went wrong. Please try again.';
+                    if (ex.message && ex.message.toLowerCase().includes('no account')) {
+                        msg = '📧 No account found with this email. Check the email and try again.';
+                    } else if (ex.message && ex.message.toLowerCase().includes('incorrect password')) {
+                        msg = '🔐 Incorrect password. Please try again.';
+                        const pwdField = document.getElementById('password');
+                        pwdField.style.animation = 'shake 0.4s ease';
+                        pwdField.value = '';
+                        pwdField.focus();
+                        setTimeout(() => pwdField.style.animation = '', 500);
+                    } else if (ex.message && ex.message.toLowerCase().includes('required')) {
+                        msg = '⚠️ Please enter both email and password.';
                     }
                     errMsg.textContent = msg;
                     errDiv.style.display = 'flex';
-
-                    const pwdField = document.getElementById('password');
-                    pwdField.style.animation = 'shake 0.4s ease';
-                    pwdField.value = '';
-                    pwdField.focus();
-                    setTimeout(() => pwdField.style.animation = '', 500);
                     btn.disabled = false;
                     btn.querySelector('span').textContent = 'Sign In';
                 }

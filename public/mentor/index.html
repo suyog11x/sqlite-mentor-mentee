@@ -123,16 +123,27 @@
                 <!-- MENTEES -->
                 <div class="page" id="page-mentees">
                     <div class="card">
-                        <div class="card-header-row">
+                        <div class="card-header-row" style="flex-wrap:wrap;gap:10px;">
                             <div class="card-title"><span class="icon">🎒</span>My Mentees</div>
-                            <input id="mentee-search" type="text" placeholder="🔍 Search…"
-                                style="padding:8px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.875rem;width:200px;" />
+                            <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap;">
+                                <!-- Year filter input -->
+                                <div style="position:relative;">
+                                    <input id="batch-year-input" type="number" placeholder="Year e.g. 2024"
+                                        min="2000" max="2099" oninput="renderMenteeGrid()"
+                                        style="padding:7px 14px;border:1.5px solid #c7d7ff;border-radius:8px;font-size:0.875rem;width:150px;background:#f0f4ff;color:#1e3a8a;font-weight:600;" />
+                                </div>
+                                <!-- Search -->
+                                <input id="mentee-search" type="text" placeholder="🔍 Search name / roll no…"
+                                    oninput="renderMenteeGrid()"
+                                    style="padding:7px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.875rem;width:200px;" />
+                            </div>
                         </div>
+                        <!-- Count label -->
+                        <div id="batch-count-label" style="font-size:0.8rem;color:#6b7280;margin:10px 0 2px;"></div>
+                        <!-- Mentee cards grid -->
                         <div id="mentees-grid"
                             style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:4px;">
-                            <div style="text-align:center;padding:24px;">
-                                <div class="spinner"></div>
-                            </div>
+                            <div style="text-align:center;padding:24px;"><div class="spinner"></div></div>
                         </div>
                     </div>
                 </div>
@@ -329,6 +340,53 @@
         let myMentees = [];
         let activeChatMenteeId = null;
 
+        function renderMenteeCard(m) {
+            const batchLabel = m.batch ? String(m.batch) : '';
+            return `<div class="mentee-card" onclick="viewProfile(${m.id})">
+          <div class="mc-header">
+            <div class="mc-avatar">${initials(m.name)}</div>
+            <div><div class="mc-name">${m.name}</div><div class="mc-roll">${m.rollno || '—'}</div></div>
+            ${batchLabel ? `<span style="margin-left:auto;background:#dbeafe;color:#1d4ed8;padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700;">Batch ${batchLabel}</span>` : ''}
+          </div>
+          <div class="mc-info">
+            <div class="mc-info-item">🏛 ${m.department || '—'}</div>
+            <div class="mc-info-item">📅 ${m.year || '—'}</div>
+            <div class="mc-info-item">📧 ${m.email}</div>
+            <div class="mc-info-item">📞 ${m.phone || '—'}</div>
+          </div>
+        </div>`;
+        }
+
+        function renderMenteeGrid() {
+            const q    = (document.getElementById('mentee-search').value || '').toLowerCase();
+            const yr   = (document.getElementById('batch-year-input').value || '').trim();
+            const filtered = myMentees.filter(m =>
+                (!yr  || String(m.batch || '') === yr) &&
+                (!q   || m.name.toLowerCase().includes(q) || (m.rollno || '').toLowerCase().includes(q))
+            );
+            const label = document.getElementById('batch-count-label');
+            if (yr) {
+                label.innerHTML = `Showing <strong>${filtered.length}</strong> student(s) from Batch <strong>${yr}</strong>`;
+            } else {
+                label.innerHTML = `Showing all <strong>${filtered.length}</strong> student(s)`;
+            }
+            const grid = document.getElementById('mentees-grid');
+            grid.innerHTML = filtered.length === 0
+                ? `<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎒</div><p>${yr ? `No students found for Batch ${yr}` : 'No mentees found'}</p></div>`
+                : filtered.map(m => renderMenteeCard(m)).join('');
+        }
+
+        async function loadMentees() {
+            myMentees = await API.get('/mentor/mentees');
+            renderMenteeGrid();
+            ['meet-mentee', 'rmk-mentee'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<option value="">— Choose Mentee —</option>' +
+                    myMentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
+            });
+        }
+        document.getElementById('mentee-search').addEventListener('input', renderMenteeGrid);
+
         async function loadDashboard() {
             try {
                 const d = await API.get('/mentor/dashboard');
@@ -359,6 +417,65 @@
             } catch (e) { toast(e.message, 'error'); }
         }
 
+        let currentMenteeView = 'all';
+
+        function setMenteeView(mode) {
+            currentMenteeView = mode;
+            document.getElementById('btn-view-all').style.background   = mode === 'all'   ? '#0d1b4b' : '#fff';
+            document.getElementById('btn-view-all').style.color        = mode === 'all'   ? '#fff'    : '#374151';
+            document.getElementById('btn-view-batch').style.background = mode === 'batch' ? '#0d1b4b' : '#fff';
+            document.getElementById('btn-view-batch').style.color      = mode === 'batch' ? '#fff'    : '#374151';
+            document.getElementById('mentees-grid').style.display  = mode === 'all'   ? 'grid' : 'none';
+            document.getElementById('mentees-batch').style.display = mode === 'batch' ? 'block' : 'none';
+            if (mode === 'batch') renderBatchView();
+        }
+
+        function renderMenteeCard(m) {
+            return `<div class="mentee-card" onclick="viewProfile(${m.id})">
+          <div class="mc-header">
+            <div class="mc-avatar">${initials(m.name)}</div>
+            <div>
+              <div class="mc-name">${m.name}</div>
+              <div class="mc-roll">${m.rollno || '—'}</div>
+            </div>
+            ${m.batch ? `<span style="margin-left:auto;background:#dbeafe;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;">Batch ${m.batch}</span>` : ''}
+          </div>
+          <div class="mc-info">
+            <div class="mc-info-item">🏛 ${m.department || '—'}</div>
+            <div class="mc-info-item">📅 ${m.year || '—'}</div>
+            <div class="mc-info-item">📧 ${m.email}</div>
+            <div class="mc-info-item">📞 ${m.phone || '—'}</div>
+          </div>
+        </div>`;
+        }
+
+        async function renderBatchView() {
+            const container = document.getElementById('mentees-batch');
+            try {
+                const groups = await API.get('/mentor/mentees/batch-wise');
+                if (groups.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="icon">🎒</div><p>No mentees assigned</p></div>';
+                    return;
+                }
+                const q = document.getElementById('mentee-search').value.toLowerCase();
+                container.innerHTML = groups.map(g => {
+                    const filtered = g.mentees.filter(m => !q || m.name.toLowerCase().includes(q) || (m.rollno||'').toLowerCase().includes(q));
+                    if (!filtered.length) return '';
+                    return `
+                    <div style="margin-bottom:24px;">
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                            <div style="background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;padding:6px 18px;border-radius:20px;font-size:0.9rem;font-weight:700;">📅 Batch ${g.batch}</div>
+                            <div style="background:#f0f4ff;color:#1e40af;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">${filtered.length} student${filtered.length > 1 ? 's' : ''}</div>
+                            <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">
+                            ${filtered.map(m => renderMenteeCard(m)).join('')}
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (e) { container.innerHTML = '<p style="color:red;">Failed to load batch data</p>'; }
+        }
+
         async function loadMentees() {
             myMentees = await API.get('/mentor/mentees');
             const q = document.getElementById('mentee-search').value.toLowerCase();
@@ -366,24 +483,17 @@
             const grid = document.getElementById('mentees-grid');
             grid.innerHTML = filtered.length === 0
                 ? '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎒</div><p>No mentees found</p></div>'
-                : filtered.map(m => `<div class="mentee-card" onclick="viewProfile(${m.id})">
-        <div class="mc-header">
-          <div class="mc-avatar">${initials(m.name)}</div>
-          <div><div class="mc-name">${m.name}</div><div class="mc-roll">${m.rollno || '—'}</div></div>
-        </div>
-        <div class="mc-info">
-          <div class="mc-info-item">🏛 ${m.department || '—'}</div>
-          <div class="mc-info-item">📅 ${m.year || '—'}</div>
-          <div class="mc-info-item">📧 ${m.email}</div>
-          <div class="mc-info-item">📞 ${m.phone || '—'}</div>
-        </div>
-      </div>`).join('');
+                : filtered.map(m => renderMenteeCard(m)).join('');
+            if (currentMenteeView === 'batch') renderBatchView();
             ['meet-mentee', 'rmk-mentee'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.innerHTML = '<option value="">— Choose Mentee —</option>' + myMentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
             });
         }
-        document.getElementById('mentee-search').addEventListener('input', loadMentees);
+        document.getElementById('mentee-search').addEventListener('input', () => {
+            loadMentees();
+            if (currentMenteeView === 'batch') renderBatchView();
+        });
 
         async function viewProfile(id) {
             try {
