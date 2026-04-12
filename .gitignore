@@ -1,7 +1,7 @@
 node_modules/
 # uploads/
 # *.db
-*.db-*
+
 .env
 .DS_Store
 *.xlsx

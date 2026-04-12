@@ -9,7 +9,7 @@ const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../mentor_mentee.db
 const db = new Database(DB_PATH);
 
 // Enable WAL mode for better concurrency
-db.pragma('journal_mode = WAL');
+db.pragma('journal_mode = DELETE');
 db.pragma('foreign_keys = ON');
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
