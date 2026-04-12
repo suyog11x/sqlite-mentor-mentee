@@ -43,6 +43,7 @@
                         Mentees</span></div>
                 <div class="nav-section-label">Bulk Operations</div>
                 <div class="nav-item" data-page="bulk"><span class="nav-icon">📤</span><span class="nav-label">Bulk Upload</span></div>
+                <div class="nav-item" data-page="documents"><span class="nav-icon">📁</span><span class="nav-label">Documents</span></div>
                 <div class="nav-section-label">Analytics</div>
                 <div class="nav-item" data-page="reports"><span class="nav-icon">📈</span><span
                         class="nav-label">Reports & Analytics</span></div>
@@ -74,42 +75,42 @@
                 <!-- DASHBOARD PAGE -->
                 <div class="page active" id="page-dashboard">
                     <div class="stats-grid" id="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card" onclick="filterAndShowUsers('')" style="cursor:pointer;" title="View All Users">
                             <div class="stat-icon navy">👥</div>
                             <div>
                                 <div class="stat-value" id="s-users">—</div>
                                 <div class="stat-label">Total Users</div>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" onclick="filterAndShowUsers('mentor')" style="cursor:pointer;" title="View Mentors">
                             <div class="stat-icon gold">👨‍🏫</div>
                             <div>
                                 <div class="stat-value" id="s-mentors">—</div>
                                 <div class="stat-label">Mentors</div>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" onclick="filterAndShowUsers('mentee')" style="cursor:pointer;" title="View Mentees">
                             <div class="stat-icon green">🎒</div>
                             <div>
                                 <div class="stat-value" id="s-mentees">—</div>
                                 <div class="stat-label">Mentees</div>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" onclick="showPage('activity')" style="cursor:pointer;" title="View Activity">
                             <div class="stat-icon blue">📅</div>
                             <div>
                                 <div class="stat-value" id="s-meetings">—</div>
                                 <div class="stat-label">Meetings</div>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" onclick="navToDocuments()" style="cursor:pointer;" title="View Documents">
                             <div class="stat-icon purple">📄</div>
                             <div>
                                 <div class="stat-value" id="s-docs">—</div>
                                 <div class="stat-label">Documents</div>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" onclick="showPage('activity')" style="cursor:pointer;" title="View Activity">
                             <div class="stat-icon red">💬</div>
                             <div>
                                 <div class="stat-value" id="s-msgs">—</div>
@@ -144,9 +145,9 @@
                             <div class="card-title"><span class="icon">👥</span>User Management</div>
                             <div style="display:flex;gap:10px;flex-wrap:wrap;">
                                 <input type="text" id="user-search" placeholder="🔍 Search users…"
-                                    style="padding:8px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.875rem;width:220px;" />
+                                    style="padding:8px 14px;border:1.5px solid var(--border-light);border-radius:8px;font-size:0.875rem;width:220px;" />
                                 <select id="user-role-filter"
-                                    style="padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.875rem;">
+                                    style="padding:8px 12px;border:1.5px solid var(--border-light);border-radius:8px;font-size:0.875rem;">
                                     <option value="">All Roles</option>
                                     <option value="mentor">Mentor</option>
                                     <option value="mentee">Mentee</option>
@@ -231,55 +232,77 @@
                     </div>
                 </div>
 
-                <!-- REPORTS PAGE -->
-                <div class="page" id="page-reports">
-                    <div class="grid-2" style="margin-bottom:20px;">
-                        <div class="card">
-                            <div class="card-header-row">
-                                <div class="card-title"><span class="icon">📚</span>Mentees by Department</div>
+                <!-- DOCUMENTS PAGE -->
+                <div class="page" id="page-documents">
+                    <div class="card">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📁</span>Uploaded Documents</div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <select id="doc-type-filter" style="padding:8px 12px;border:1.5px solid var(--border-light);border-radius:8px;font-size:0.875rem;">
+                                    <option value="">All Document Types</option>
+                                    <option value="Course Registration">Course Registration</option>
+                                    <option value="AICTE Certificate">AICTE Certificate</option>
+                                    <option value="Result Report Card">Result Report Card</option>
+                                    <option value="Internship Certificate">Internship Certificate</option>
+                                </select>
+                                <button class="btn btn-primary btn-sm" onclick="downloadBulkExcelReport()">⬇ Download Excel Report</button>
                             </div>
-                            <canvas id="chart-dept" height="220"></canvas>
                         </div>
-                        <div class="card">
-                            <div class="card-header-row">
-                                <div class="card-title"><span class="icon">📅</span>Monthly Meetings</div>
-                            </div>
-                            <canvas id="chart-monthly" height="220"></canvas>
+                        <div class="table-wrap">
+                            <table id="documents-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Batch Year</th>
+                                        <th>Mentor Name</th>
+                                        <th>Document Type</th>
+                                        <th>Upload Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="documents-tbody">
+                                    <tr>
+                                        <td colspan="6" style="text-align:center;padding:24px;">
+                                            <div class="spinner" style="margin:auto;"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="grid-2">
-                        <div class="card">
-                            <div class="card-header-row">
-                                <div class="card-title"><span class="icon">📄</span>Documents by Type</div>
-                            </div>
-                            <canvas id="chart-docs" height="220"></canvas>
+                </div>
+
+                <!-- REPORTS PAGE -->
+                <div class="page" id="page-reports">
+                    <div class="card">
+                        <div class="card-header-row">
+                            <div class="card-title"><span class="icon">📥</span>Download Student Report (PDF)</div>
                         </div>
-                        <div class="card">
-                            <div class="card-header-row">
-                                <div class="card-title"><span class="icon">📥</span>Download Student Report (PDF)</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Select Mentee</label>
-                                <select id="pdf-mentee-select">
-                                    <option value="">— Choose Mentee —</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-gold" onclick="downloadPDF()">⬇ Download PDF Report</button>
+                        <div class="form-group">
+                            <label>Search Mentee</label>
+                            <input type="text" id="pdf-mentee-search" placeholder="Type to search by name or roll number..." />
                         </div>
+                        <div class="form-group">
+                            <label>Select Mentee</label>
+                            <select id="pdf-mentee-select">
+                                <option value="">— Choose Mentee —</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-gold" onclick="downloadPDF()">⬇ Download PDF Report</button>
                     </div>
                 </div>
 
                 <!-- BULK UPLOAD PAGE -->
                 <div class="page" id="page-bulk">
                     <!-- Info Banner -->
-                    <div style="background:linear-gradient(135deg,#0d1b4b 0%,#1e3a8a 100%);border-radius:16px;padding:28px 32px;margin-bottom:24px;color:#fff;display:flex;align-items:center;gap:24px;">
+                    <div style="background:linear-gradient(135deg,var(--text-main) 0%,#1e3a8a 100%);border-radius:16px;padding:28px 32px;margin-bottom:24px;color:var(--bg-card);display:flex;align-items:center;gap:24px;">
                         <div style="font-size:3rem;">📤</div>
                         <div>
                             <h2 style="margin:0 0 6px;font-size:1.35rem;font-weight:700;">Bulk Student Upload via Excel</h2>
                             <p style="margin:0;opacity:.82;font-size:.92rem;">Upload an <strong>.xlsx</strong> file to create or update multiple mentee accounts at once. Email is auto-derived as <code style="background:rgba(255,255,255,.15);padding:2px 7px;border-radius:5px;">UID@students.git.edu</code>. Default password is <code style="background:rgba(255,255,255,.15);padding:2px 7px;border-radius:5px;">git@12345</code>.</p>
                         </div>
                         <div style="margin-left:auto;">
-                            <button class="btn" id="btn-download-template" onclick="downloadTemplate()" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.35);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:.9rem;white-space:nowrap;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+                            <button class="btn" id="btn-download-template" onclick="downloadTemplate()" style="background:rgba(255,255,255,.15);color:var(--bg-card);border:1.5px solid rgba(255,255,255,.35);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:.9rem;white-space:nowrap;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
                                 ⬇ Download Template
                             </button>
                         </div>
@@ -310,27 +333,27 @@
                                 style="border:2.5px dashed #c7d7ff;border-radius:14px;padding:48px 24px;text-align:center;cursor:pointer;transition:all .25s;background:#f8faff;position:relative;">
                                 <div style="font-size:3rem;margin-bottom:12px;">📁</div>
                                 <div style="font-size:1rem;font-weight:600;color:#1e3a8a;margin-bottom:6px;">Drag &amp; drop your .xlsx file here</div>
-                                <div style="font-size:.83rem;color:#6b7280;">or click to browse</div>
+                                <div style="font-size:.83rem;color:var(--text-muted);">or click to browse</div>
                                 <div id="drop-zone-filename" style="display:none;margin-top:14px;padding:8px 16px;background:#dbeafe;border-radius:8px;font-size:.85rem;font-weight:600;color:#1d4ed8;"></div>
                             </div>
                             <input type="file" id="bulk-file-input" accept=".xlsx" style="display:none" onchange="handleFileSelect(this.files[0])" />
 
                             <!-- Email domain warning -->
-                            <div style="margin-top:14px;background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:.83rem;color:#92400e;">
+                            <div style="margin-top:14px;background:var(--warning-bg);border:1px solid var(--warning);border-radius:10px;padding:12px 16px;font-size:.83rem;color:var(--warning);">
                                 ⚠️ <strong>Email Domain Rule:</strong> Student emails are generated as <code>UID@students.git.edu</code>. If a UID contains an incorrect format or is associated with a different domain, the upload will flag it as an error.
                             </div>
 
                             <!-- Upload Button -->
                             <button id="btn-do-upload" onclick="doUpload()" disabled
-                                style="margin-top:18px;width:100%;padding:13px;background:#0d1b4b;color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;opacity:.5;transition:opacity .2s;">
+                                style="margin-top:18px;width:100%;padding:13px;background:var(--text-main);color:var(--bg-card);border:none;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;opacity:.5;transition:opacity .2s;">
                                 🚀 Upload &amp; Process
                             </button>
 
                             <!-- Progress Bar -->
                             <div id="upload-progress" style="display:none;margin-top:14px;">
-                                <div style="font-size:.83rem;color:#6b7280;margin-bottom:6px;">Processing…</div>
-                                <div style="height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;">
-                                    <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#0d1b4b,#2563eb);border-radius:99px;transition:width .6s ease;"></div>
+                                <div style="font-size:.83rem;color:var(--text-muted);margin-bottom:6px;">Processing…</div>
+                                <div style="height:8px;background:var(--border-light);border-radius:99px;overflow:hidden;">
+                                    <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--text-main),#2563eb);border-radius:99px;transition:width .6s ease;"></div>
                                 </div>
                             </div>
                         </div>
@@ -352,13 +375,13 @@
                                     <div style="font-size:1.8rem;font-weight:800;color:#2563eb;" id="res-updated">0</div>
                                     <div style="font-size:.78rem;color:#1e40af;font-weight:600;">🔄 Updated</div>
                                 </div>
-                                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;text-align:center;">
+                                <div style="background:var(--danger-bg);border:1px solid #fecaca;border-radius:10px;padding:14px;text-align:center;">
                                     <div style="font-size:1.8rem;font-weight:800;color:#dc2626;" id="res-failed">0</div>
                                     <div style="font-size:.78rem;color:#991b1b;font-weight:600;">❌ Failed</div>
                                 </div>
-                                <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px;text-align:center;">
+                                <div style="background:#f9fafb;border:1px solid var(--border-light);border-radius:10px;padding:14px;text-align:center;">
                                     <div style="font-size:1.8rem;font-weight:800;color:#374151;" id="res-total">0</div>
-                                    <div style="font-size:.78rem;color:#6b7280;font-weight:600;">📄 Total Rows</div>
+                                    <div style="font-size:.78rem;color:var(--text-muted);font-weight:600;">📄 Total Rows</div>
                                 </div>
                             </div>
 
@@ -505,6 +528,7 @@
         setCurrentDate();
 
         let allUsers = [];
+        let chartMeetings = null;
 
         async function loadDashboard() {
             try {
@@ -521,20 +545,24 @@
                     tbody.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No activity yet</p></div>';
                 } else {
                     tbody.innerHTML = '<table><thead><tr><th>User</th><th>Action</th><th>Time</th></tr></thead><tbody>'
-                        + data.recentActivity.slice(0, 10).map(a => `<tr><td>${a.name || 'System'}</td><td>${a.action}</td><td style="font-size:0.78rem;color:#6b7280">${formatDate(a.timestamp)}</td></tr>`).join('')
+                        + data.recentActivity.slice(0, 10).map(a => `<tr><td>${a.name || 'System'}</td><td>${a.action}</td><td style="font-size:0.78rem;color:var(--text-muted)">${formatDate(a.timestamp)}</td></tr>`).join('')
                         + '</tbody></table>';
                 }
 
-                // Charts
-                const rpt = await API.get('/reports/overview');
-                new Chart(document.getElementById('chart-meetings'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: rpt.meetingsByStatus.map(d => d.status),
-                        datasets: [{ data: rpt.meetingsByStatus.map(d => d.count), backgroundColor: ['#2563eb', '#059669', '#dc2626'] }]
-                    },
-                    options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
-                });
+                // Charts — always destroy any existing chart on the canvas first
+                try {
+                    const rpt = await API.get('/reports/overview');
+                    const existingChart = Chart.getChart('chart-meetings');
+                    if (existingChart) existingChart.destroy();
+                    chartMeetings = new Chart(document.getElementById('chart-meetings'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: rpt.meetingsByStatus.map(d => d.status),
+                            datasets: [{ data: rpt.meetingsByStatus.map(d => d.count), backgroundColor: ['#2563eb', '#059669', '#dc2626'] }]
+                        },
+                        options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
+                    });
+                } catch (_) { /* chart errors are non-critical, suppress toast */ }
             } catch (e) { toast(e.message, 'error'); }
         }
 
@@ -546,7 +574,7 @@
         }
         function renderUsersTable(users) {
             const tbody = document.getElementById('users-tbody');
-            if (users.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6b7280;">No users found</td></tr>'; return; }
+            if (users.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">No users found</td></tr>'; return; }
             tbody.innerHTML = users.map(u => `
     <tr>
       <td><strong>${u.name}</strong></td>
@@ -554,13 +582,22 @@
       <td><span class="badge badge-${u.role}">${u.role}</span></td>
       <td>${u.department || '—'}</td>
       <td>${u.rollno || '—'}</td>
-      <td style="font-size:0.78rem;color:#6b7280">${formatDateOnly(u.created_at)}</td>
+      <td style="font-size:0.78rem;color:var(--text-muted)">${formatDateOnly(u.created_at)}</td>
       <td>
         <button class="btn btn-outline btn-sm" onclick="editUser(${u.id})">Edit</button>
         ${u.role !== 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.name}')">Delete</button>` : ''}
       </td>
     </tr>
   `).join('');
+        }
+
+        async function filterAndShowUsers(role) {
+            showPage('users');
+            if (allUsers.length === 0) await loadUsers();
+            const select = document.getElementById('user-role-filter');
+            select.value = role;
+            const q = document.getElementById('user-search').value.toLowerCase();
+            renderUsersTable(allUsers.filter(u => (!role || u.role === role) && (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))));
         }
 
         document.getElementById('user-search').addEventListener('input', (e) => {
@@ -636,9 +673,6 @@
                     + mentors.map(m => `<option value="${m.id}">${m.name} (${m.department || '—'})</option>`).join('');
                 document.getElementById('assign-mentee-select').innerHTML = '<option value="">— Choose Mentee —</option>'
                     + mentees.map(m => `<option value="${m.id}">${m.name} — ${m.rollno || 'no roll'}</option>`).join('');
-                // pdf select
-                document.getElementById('pdf-mentee-select').innerHTML = '<option value="">— Choose Mentee —</option>'
-                    + mentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
                 loadMappings();
             } catch (e) { toast(e.message, 'error'); }
         }
@@ -648,7 +682,7 @@
                 const mappings = await API.get('/admin/mappings');
                 const tbody = document.getElementById('mappings-tbody');
                 if (mappings.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#6b7280;padding:16px;">No mappings yet</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px;">No mappings yet</td></tr>';
                     return;
                 }
 
@@ -675,17 +709,17 @@
                                 color:#1e3a8a;
                                 font-size:0.85rem;
                                 padding:10px 12px;
-                            ">${mentorName}<br><span style="font-weight:400;color:#6b7280;font-size:0.75rem;">${rows.length} mentee${rows.length > 1 ? 's' : ''}</span></td>`;
+                            ">${mentorName}<br><span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;">${rows.length} mentee${rows.length > 1 ? 's' : ''}</span></td>`;
                         }
                         html += `
                             <td>${m.mentee_name}</td>
                             <td>${m.rollno || '—'}</td>
-                            <td style="font-size:0.78rem;color:#6b7280">${formatDateOnly(m.assigned_at)}</td>
+                            <td style="font-size:0.78rem;color:var(--text-muted)">${formatDateOnly(m.assigned_at)}</td>
                             <td><button class="btn btn-danger btn-sm" onclick="removeMapping(${m.id})">Remove</button></td>
                         </tr>`;
                     });
                     // Subtle separator row between mentor groups
-                    html += `<tr><td colspan="5" style="padding:2px;background:#e5e7eb;"></td></tr>`;
+                    html += `<tr><td colspan="5" style="padding:2px;background:var(--border-light);"></td></tr>`;
                 }
                 tbody.innerHTML = html;
             } catch (e) { toast(e.message, 'error'); }
@@ -704,27 +738,30 @@
             catch (e) { toast(e.message, 'error'); }
         }
 
+        let allMenteesForReport = [];
+
         async function loadReports() {
             try {
-                const data = await API.get('/reports/overview');
-                const colors = ['#0d1b4b', '#c9a84c', '#059669', '#2563eb', '#dc2626', '#7c3aed'];
-                new Chart(document.getElementById('chart-dept'), {
-                    type: 'bar',
-                    data: { labels: data.byDept.map(d => d.department || 'Unknown'), datasets: [{ label: 'Mentees', data: data.byDept.map(d => d.count), backgroundColor: colors }] },
-                    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, maintainAspectRatio: false }
-                });
-                new Chart(document.getElementById('chart-monthly'), {
-                    type: 'line',
-                    data: { labels: data.monthlyMeetings.map(d => d.month).reverse(), datasets: [{ label: 'Meetings', data: data.monthlyMeetings.map(d => d.count).reverse(), borderColor: '#0d1b4b', backgroundColor: 'rgba(13,27,75,0.08)', tension: 0.4, fill: true }] },
-                    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, maintainAspectRatio: false }
-                });
-                new Chart(document.getElementById('chart-docs'), {
-                    type: 'pie',
-                    data: { labels: data.docsByType.map(d => d.type), datasets: [{ data: data.docsByType.map(d => d.count), backgroundColor: colors }] },
-                    options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
-                });
+                allMenteesForReport = await API.get('/admin/all-mentees');
+                renderPdfMenteeSelect(allMenteesForReport);
             } catch (e) { toast(e.message, 'error'); }
         }
+
+        function renderPdfMenteeSelect(mentees) {
+            const select = document.getElementById('pdf-mentee-select');
+            if (select) {
+                select.innerHTML = '<option value="">— Choose Mentee —</option>'
+                    + mentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
+            }
+        }
+
+        document.getElementById('pdf-mentee-search')?.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            renderPdfMenteeSelect(allMenteesForReport.filter(m => 
+                m.name.toLowerCase().includes(q) || 
+                (m.rollno && m.rollno.toLowerCase().includes(q))
+            ));
+        });
 
         async function loadActivity() {
             try {
@@ -732,11 +769,11 @@
                 const tbody = document.getElementById('activity-tbody');
                 tbody.innerHTML = data.recentActivity.map((a, i) => `
       <tr>
-        <td style="color:#6b7280;font-size:0.78rem">${i + 1}</td>
+        <td style="color:var(--text-muted);font-size:0.78rem">${i + 1}</td>
         <td>${a.name || 'System'} <span class="badge badge-${a.role || 'admin'}" style="margin-left:4px">${a.role || 'system'}</span></td>
         <td><span class="badge badge-blue">${a.role || '—'}</span></td>
         <td>${a.action}</td>
-        <td style="font-size:0.78rem;color:#6b7280">${formatDate(a.timestamp)}</td>
+        <td style="font-size:0.78rem;color:var(--text-muted)">${formatDate(a.timestamp)}</td>
       </tr>
     `).join('');
             } catch (e) { toast(e.message, 'error'); }
@@ -844,7 +881,7 @@
             if (r.errors && r.errors.length > 0) {
                 errSec.style.display = 'block';
                 document.getElementById('errors-tbody').innerHTML = r.errors.map(e =>
-                    `<tr><td style="color:#6b7280">${e.row}</td><td><code>${e.uid}</code></td><td style="color:#dc2626">${Array.isArray(e.reasons) ? e.reasons.join('; ') : e.reasons}</td></tr>`
+                    `<tr><td style="color:var(--text-muted)">${e.row}</td><td><code>${e.uid}</code></td><td style="color:#dc2626">${Array.isArray(e.reasons) ? e.reasons.join('; ') : e.reasons}</td></tr>`
                 ).join('');
             } else { errSec.style.display = 'none'; }
 
@@ -853,7 +890,7 @@
             if (r.warnings && r.warnings.length > 0) {
                 warnSec.style.display = 'block';
                 document.getElementById('warnings-tbody').innerHTML = r.warnings.map(w =>
-                    `<tr><td style="color:#6b7280">${w.row}</td><td><code>${w.uid}</code></td><td style="color:#d97706">${w.message}</td></tr>`
+                    `<tr><td style="color:var(--text-muted)">${w.row}</td><td><code>${w.uid}</code></td><td style="color:#d97706">${w.message}</td></tr>`
                 ).join('');
             } else { warnSec.style.display = 'none'; }
 
@@ -878,12 +915,60 @@
             URL.revokeObjectURL(url);
         }
 
+        let allDocuments = [];
+
+        async function loadDocuments() {
+            try {
+                allDocuments = await API.get('/admin/documents');
+                renderDocumentsTable(allDocuments);
+            } catch (e) { toast(e.message, 'error'); }
+        }
+
+        async function navToDocuments() {
+            showPage('documents');
+            if (allDocuments.length === 0) await loadDocuments();
+        }
+
+        function renderDocumentsTable(docs) {
+            const tbody = document.getElementById('documents-tbody');
+            if (docs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">No documents found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = docs.map(d => {
+                const ext = d.original_name ? d.original_name.split('.').pop() : 'pdf';
+                const dlName = `${(d.mentee_name || 'student').replace(/\\s+/g, '_')}_${d.type.replace(/\\s+/g, '_')}_${d.batch_year || 'Unknown'}.${ext}`;
+                return `
+    <tr>
+      <td><strong>${d.mentee_name || '—'}</strong></td>
+      <td>${d.batch_year || '—'}</td>
+      <td>${d.mentor_name || 'Unassigned'}</td>
+      <td><span style="background:#f0f4ff;color:#1d4ed8;padding:3px 8px;border-radius:20px;font-size:0.75rem;font-weight:600;">${d.type}</span></td>
+      <td style="font-size:0.78rem;color:var(--text-muted)">${formatDateOnly(d.upload_date)}</td>
+      <td>
+        <a href="/uploads/${d.filename}" download="${dlName}" class="btn btn-outline btn-sm" target="_blank" title="Download Document">Download</a>
+      </td>
+    </tr>`;
+            }).join('');
+        }
+
+        document.getElementById('doc-type-filter')?.addEventListener('change', (e) => {
+            const type = e.target.value;
+            renderDocumentsTable(allDocuments.filter(d => !type || d.type === type));
+        });
+
+        function downloadBulkExcelReport() {
+            const token = localStorage.getItem('mm_token');
+            window.open(`/api/admin/documents/export?token=${token}`, '_blank');
+        }
+
         // Nav page switching with lazy loading
         const pageLoaders = {
             dashboard: loadDashboard,
             users: loadUsers,
             assign: loadAssign,
             bulk: () => {}, // no initial load needed
+            documents: loadDocuments,
             reports: loadReports,
             activity: loadActivity
         };
@@ -897,6 +982,7 @@
 
         // Initial load
         loadDashboard();
+        loadUsers();
     </script>
 </body>
 

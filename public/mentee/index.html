@@ -192,7 +192,7 @@
                             <div class="card-title"><span class="icon">💬</span>Chat with My Mentor</div>
                         </div>
                         <div id="msg-mentor-info"
-                            style="margin-bottom:12px;padding:12px;background:#f0f4f8;border-radius:10px;"></div>
+                            style="margin-bottom:12px;padding:12px;background:var(--bg-app);border-radius:10px;"></div>
                         <div class="chat-container">
                             <div class="chat-messages" id="chat-messages"></div>
                             <div class="chat-input-row">
@@ -221,17 +221,17 @@
     <!-- PROFILE MODAL -->
     <div class="modal-overlay" id="modal-profile">
         <div class="modal" style="max-width:480px;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#0d1b4b,#1a2f7a);border-radius:16px 16px 0 0;">
-                <h3 style="color:#fff;display:flex;align-items:center;gap:10px;">👤 My Profile</h3>
+            <div class="modal-header" style="background:linear-gradient(135deg,var(--text-main),#1a2f7a);border-radius:16px 16px 0 0;">
+                <h3 style="color:var(--bg-card);display:flex;align-items:center;gap:10px;">👤 My Profile</h3>
                 <button class="modal-close" style="color:rgba(255,255,255,0.6);">✕</button>
             </div>
             <div class="modal-body" style="padding:0;">
                 <!-- Avatar banner -->
-                <div style="background:linear-gradient(135deg,#0d1b4b,#1a2f7a);padding:0 24px 28px;display:flex;align-items:center;gap:18px;">
-                    <div id="profile-avatar-big" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#c9a84c,#a07c30);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#fff;border:3px solid rgba(255,255,255,0.3);flex-shrink:0;">S</div>
+                <div style="background:linear-gradient(135deg,var(--text-main),#1a2f7a);padding:0 24px 28px;display:flex;align-items:center;gap:18px;">
+                    <div id="profile-avatar-big" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:var(--bg-card);border:3px solid rgba(255,255,255,0.3);flex-shrink:0;">S</div>
                     <div>
-                        <div id="profile-name" style="font-size:1.15rem;font-weight:700;color:#fff;">—</div>
-                        <div id="profile-role-tag" style="font-size:0.72rem;color:#c9a84c;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Mentee</div>
+                        <div id="profile-name" style="font-size:1.15rem;font-weight:700;color:var(--bg-card);">—</div>
+                        <div id="profile-role-tag" style="font-size:0.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Mentee</div>
                     </div>
                 </div>
                 <!-- Details -->
@@ -320,12 +320,12 @@
             if (data.mentor) {
                 mentorEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:14px;padding:8px 0;">
-        <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;">${initials(data.mentor.name)}</div>
+        <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--text-main),#1a2f7a);color:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;">${initials(data.mentor.name)}</div>
         <div>
-          <div style="font-weight:700;font-size:1rem;color:#0d1b4b;">${data.mentor.name}</div>
-          <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">🏛 ${data.mentor.department || '—'}</div>
-          <div style="font-size:0.8rem;color:#6b7280;">📧 ${data.mentor.email}</div>
-          <div style="font-size:0.8rem;color:#6b7280;">📞 ${data.mentor.phone || '—'}</div>
+          <div style="font-weight:700;font-size:1rem;color:var(--text-main);">${data.mentor.name}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">🏛 ${data.mentor.department || '—'}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">📧 ${data.mentor.email}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">📞 ${data.mentor.phone || '—'}</div>
         </div>
       </div>`;
             } else {
@@ -337,9 +337,9 @@
             const upcoming = data.meetings.filter(m => m.status === 'scheduled');
             if (upcoming.length === 0) meetEl.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>No upcoming meetings</p></div>';
             else meetEl.innerHTML = upcoming.slice(0, 3).map(m => `
-    <div style="padding:12px;background:#f0f4f8;border-radius:10px;margin-bottom:8px;border-left:4px solid #0d1b4b;">
+    <div style="padding:12px;background:var(--bg-app);border-radius:10px;margin-bottom:8px;border-left:4px solid var(--text-main);">
       <div style="font-weight:700;font-size:0.875rem;">📅 ${formatDate(m.scheduled_at)}</div>
-      <div style="font-size:0.78rem;color:#6b7280;margin-top:3px;">📍 ${m.venue || 'TBD'} · ${m.agenda || 'No agenda'}</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:3px;">📍 ${m.venue || 'TBD'} · ${m.agenda || 'No agenda'}</div>
     </div>`).join('');
 
             // Announcements
@@ -352,10 +352,10 @@
             const rmkEl = document.getElementById('dash-remarks');
             if (!data.remarks || data.remarks.length === 0) rmkEl.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>No feedback yet</p></div>';
             else rmkEl.innerHTML = data.remarks.map(r => `
-    <div style="padding:12px;background:#f0f4f8;border-radius:10px;margin-bottom:8px;border-left:4px solid #c9a84c;">
-      <div style="font-weight:700;font-size:0.8rem;color:#0d1b4b;">${r.semester || '—'} · CGPA: ${r.cgpa || '—'}</div>
+    <div style="padding:12px;background:var(--bg-app);border-radius:10px;margin-bottom:8px;border-left:4px solid var(--gold);">
+      <div style="font-weight:700;font-size:0.8rem;color:var(--text-main);">${r.semester || '—'} · CGPA: ${r.cgpa || '—'}</div>
       <p style="font-size:0.83rem;margin-top:4px;">${r.remarks}</p>
-      <div style="font-size:0.72rem;color:#6b7280;margin-top:4px;">${formatDate(r.created_at)}</div>
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">${formatDate(r.created_at)}</div>
     </div>`).join('');
         }
 
@@ -367,7 +367,7 @@
                 + docs.map(d => `<tr>
       <td><span class="badge badge-blue">${d.type}</span></td>
       <td>${d.original_name}</td>
-      <td style="font-size:0.78rem;color:#6b7280;">${formatDateOnly(d.upload_date)}</td>
+      <td style="font-size:0.78rem;color:var(--text-muted);">${formatDateOnly(d.upload_date)}</td>
       <td style="display:flex;gap:8px;">
         <a href="/uploads/${d.filename}" target="_blank" class="btn btn-outline btn-sm">⬇ View</a>
         <button class="btn btn-danger btn-sm" onclick="deleteDoc(${d.id})">🗑</button>
@@ -401,10 +401,10 @@
             const el = document.getElementById('feedback-list');
             if (remarks.length === 0) { el.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>No feedback from mentor yet</p></div>'; return; }
             el.innerHTML = remarks.map(r => `
-    <div style="padding:16px;background:#f0f4f8;border-radius:12px;margin-bottom:12px;border-left:4px solid #c9a84c;">
+    <div style="padding:16px;background:var(--bg-app);border-radius:12px;margin-bottom:12px;border-left:4px solid var(--gold);">
       <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-        <div><span style="font-weight:700;color:#0d1b4b;">${r.semester || 'General'}</span>${r.cgpa ? ` <span style="color:#c9a84c;font-weight:700;margin-left:8px;">CGPA: ${r.cgpa}</span>` : ''}</div>
-        <div style="font-size:0.75rem;color:#6b7280;">By ${r.mentor_name} · ${formatDate(r.created_at)}</div>
+        <div><span style="font-weight:700;color:var(--text-main);">${r.semester || 'General'}</span>${r.cgpa ? ` <span style="color:var(--gold);font-weight:700;margin-left:8px;">CGPA: ${r.cgpa}</span>` : ''}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">By ${r.mentor_name} · ${formatDate(r.created_at)}</div>
       </div>
       <p style="font-size:0.875rem;line-height:1.6;">${r.remarks}</p>
     </div>`).join('');
@@ -418,7 +418,7 @@
             if (dash.mentor) {
                 infoEl.innerHTML = `<strong>Chatting with:</strong> ${dash.mentor.name} · ${dash.mentor.department || '—'} · ${dash.mentor.email}`;
             } else {
-                infoEl.innerHTML = '<em style="color:#6b7280;">No mentor assigned yet</em>';
+                infoEl.innerHTML = '<em style="color:var(--text-muted);">No mentor assigned yet</em>';
             }
             const box = document.getElementById('chat-messages');
             box.innerHTML = msgs.map(m => `
@@ -447,7 +447,7 @@
           <strong>${formatDate(m.scheduled_at)}</strong>
           <span class="badge badge-${m.status}">${m.status}</span>
         </div>
-        <div style="font-size:0.8rem;color:#6b7280;">📍 ${m.venue || 'TBD'}</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">📍 ${m.venue || 'TBD'}</div>
         ${m.agenda ? `<div style="font-size:0.8rem;margin-top:3px;">📋 ${m.agenda}</div>` : ''}
         ${m.remarks ? `<div style="font-size:0.8rem;margin-top:3px;color:#059669;">💬 Mentor Note: ${m.remarks}</div>` : ''}
       </div>

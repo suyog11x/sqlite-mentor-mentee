@@ -9,6 +9,7 @@ const Meeting      = require('../models/Meeting');
 const Document     = require('../models/Document');
 const Message      = require('../models/Message');
 const ActivityLog  = require('../models/ActivityLog');
+const xlsx         = require('xlsx');
 const { authenticate, requireRole } = require('../middleware/auth');
 
 router.use(authenticate, requireRole('admin'));
@@ -209,6 +210,68 @@ router.get('/all-mentees', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// GET /api/admin/documents
+router.get('/documents', async (req, res) => {
+    try {
+        const rows = db.prepare(`
+            SELECT d.id, d.type, d.original_name, d.filename, d.filepath, d.upload_date,
+                   u.name AS mentee_name, u.year AS batch_year,
+                   m.name AS mentor_name
+            FROM documents d
+            JOIN users u ON d.mentee_id = u.id
+            LEFT JOIN mentor_mentee mm ON u.id = mm.mentee_id
+            LEFT JOIN users m ON mm.mentor_id = m.id
+            ORDER BY d.upload_date DESC
+        `).all();
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// GET /api/admin/documents/export
+router.get('/documents/export', async (req, res) => {
+    try {
+        // Fetch the aggregated data per mentee
+        const rows = db.prepare(`
+            SELECT u.name AS "Student Name", u.year AS "Batch Year", 
+                   m.name AS "Mentor Name", 
+                   GROUP_CONCAT(d.type, ', ') AS "Documents Uploaded"
+            FROM documents d
+            JOIN users u ON d.mentee_id = u.id
+            LEFT JOIN mentor_mentee mm ON u.id = mm.mentee_id
+            LEFT JOIN users m ON mm.mentor_id = m.id
+            GROUP BY u.id
+            ORDER BY u.name ASC
+        `).all();
+
+        // Create workbook and worksheet
+        const wb = xlsx.utils.book_new();
+        const ws = xlsx.utils.json_to_sheet(rows.length ? rows : [{ message: 'No documents found' }]);
+        
+        // Define column widths for better indentation and visibility
+        ws['!cols'] = [
+            { wch: 25 }, // Student Name
+            { wch: 15 }, // Batch Year
+            { wch: 25 }, // Mentor Name
+            { wch: 60 }  // Documents Uploaded
+        ];
+
+        xlsx.utils.book_append_sheet(wb, ws, 'Documents Report');
+
+        // Write to buffer
+        const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+        res.setHeader('Content-Disposition', 'attachment; filename="documents_report.xlsx"');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.send(buffer);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error during export' });
     }
 });
 

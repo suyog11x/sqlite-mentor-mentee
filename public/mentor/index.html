@@ -135,11 +135,11 @@
                                 <!-- Search -->
                                 <input id="mentee-search" type="text" placeholder="🔍 Search name / roll no…"
                                     oninput="renderMenteeGrid()"
-                                    style="padding:7px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.875rem;width:200px;" />
+                                    style="padding:7px 14px;border:1.5px solid var(--border-light);border-radius:8px;font-size:0.875rem;width:200px;" />
                             </div>
                         </div>
                         <!-- Count label -->
-                        <div id="batch-count-label" style="font-size:0.8rem;color:#6b7280;margin:10px 0 2px;"></div>
+                        <div id="batch-count-label" style="font-size:0.8rem;color:var(--text-muted);margin:10px 0 2px;"></div>
                         <!-- Mentee cards grid -->
                         <div id="mentees-grid"
                             style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:4px;">
@@ -181,17 +181,30 @@
                         <div class="card-header-row">
                             <div class="card-title"><span class="icon">📅</span>Schedule a Meeting</div>
                         </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-                            <div class="form-group"><label>Mentee</label><select id="meet-mentee">
-                                    <option value="">— Choose —</option>
-                                </select></div>
-                            <div class="form-group"><label>Date & Time</label><input type="datetime-local"
-                                    id="meet-datetime" /></div>
-                            <div class="form-group"><label>Venue</label><input type="text" id="meet-venue"
-                                    placeholder="Room 201, CSE Block" /></div>
+
+                        <!-- Mentee multi-select panel -->
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                <span>Select Mentees</span>
+                                <div style="display:flex;gap:8px;">
+                                    <button type="button" class="btn btn-outline btn-sm" id="btn-select-all-mentees" onclick="toggleSelectAllMentees()">☑ Select All</button>
+                                    <input type="text" id="meet-mentee-search" placeholder="🔍 Filter mentees…"
+                                        oninput="filterMeetMenteeList()"
+                                        style="padding:5px 10px;border:1.5px solid var(--border-light);border-radius:8px;font-size:0.8rem;width:160px;"/>
+                                </div>
+                            </label>
+                            <div id="meet-mentee-list"
+                                style="max-height:200px;overflow-y:auto;border:1.5px solid var(--border-light);border-radius:10px;padding:6px 10px;display:flex;flex-direction:column;gap:2px;background:var(--bg-app);">
+                                <div style="color:var(--text-muted);font-size:0.85rem;padding:8px;">Loading mentees…</div>
+                            </div>
+                            <div id="meet-selected-count" style="font-size:0.78rem;color:var(--text-muted);margin-top:5px;">0 mentee(s) selected</div>
                         </div>
-                        <div class="form-group"><label>Agenda</label><textarea id="meet-agenda" rows="2"
-                                placeholder="Meeting agenda…"></textarea></div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="meet-datetime" /></div>
+                            <div class="form-group"><label>Venue</label><input type="text" id="meet-venue" placeholder="Room 201, CSE Block" /></div>
+                        </div>
+                        <div class="form-group"><label>Agenda</label><textarea id="meet-agenda" rows="2" placeholder="Meeting agenda…"></textarea></div>
                         <button class="btn btn-primary" onclick="scheduleMeeting()">📅 Schedule Meeting</button>
                     </div>
                     <div class="card">
@@ -244,10 +257,10 @@
                             <div class="chat-container" id="chat-area" style="display:none;">
                                 <!-- Active chat header -->
                                 <div id="chat-header" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:#f8fafc;border-radius:0;">
-                                    <div id="chat-header-avatar" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">?</div>
+                                    <div id="chat-header-avatar" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--text-main),#1a2f7a);color:var(--bg-card);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">?</div>
                                     <div>
-                                        <div id="chat-header-name" style="font-weight:700;font-size:0.9rem;color:#0d1b4b;">—</div>
-                                        <div style="font-size:0.72rem;color:#6b7280;">Mentee</div>
+                                        <div id="chat-header-name" style="font-weight:700;font-size:0.9rem;color:var(--text-main);">—</div>
+                                        <div style="font-size:0.72rem;color:var(--text-muted);">Mentee</div>
                                     </div>
                                 </div>
                                 <div class="chat-messages" id="chat-messages"></div>
@@ -340,52 +353,53 @@
         let myMentees = [];
         let activeChatMenteeId = null;
 
-        function renderMenteeCard(m) {
-            const batchLabel = m.batch ? String(m.batch) : '';
-            return `<div class="mentee-card" onclick="viewProfile(${m.id})">
-          <div class="mc-header">
-            <div class="mc-avatar">${initials(m.name)}</div>
-            <div><div class="mc-name">${m.name}</div><div class="mc-roll">${m.rollno || '—'}</div></div>
-            ${batchLabel ? `<span style="margin-left:auto;background:#dbeafe;color:#1d4ed8;padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700;">Batch ${batchLabel}</span>` : ''}
-          </div>
-          <div class="mc-info">
-            <div class="mc-info-item">🏛 ${m.department || '—'}</div>
-            <div class="mc-info-item">📅 ${m.year || '—'}</div>
-            <div class="mc-info-item">📧 ${m.email}</div>
-            <div class="mc-info-item">📞 ${m.phone || '—'}</div>
-          </div>
-        </div>`;
-        }
-
-        function renderMenteeGrid() {
-            const q    = (document.getElementById('mentee-search').value || '').toLowerCase();
-            const yr   = (document.getElementById('batch-year-input').value || '').trim();
-            const filtered = myMentees.filter(m =>
-                (!yr  || String(m.batch || '') === yr) &&
-                (!q   || m.name.toLowerCase().includes(q) || (m.rollno || '').toLowerCase().includes(q))
-            );
-            const label = document.getElementById('batch-count-label');
-            if (yr) {
-                label.innerHTML = `Showing <strong>${filtered.length}</strong> student(s) from Batch <strong>${yr}</strong>`;
-            } else {
-                label.innerHTML = `Showing all <strong>${filtered.length}</strong> student(s)`;
+        // ── Mentee multi-select helpers ──────────────────────────────────────
+        function renderMeetMenteeList(mentees) {
+            const container = document.getElementById('meet-mentee-list');
+            if (!mentees || mentees.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:10px;">No mentees assigned</div>';
+                return;
             }
-            const grid = document.getElementById('mentees-grid');
-            grid.innerHTML = filtered.length === 0
-                ? `<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎒</div><p>${yr ? `No students found for Batch ${yr}` : 'No mentees found'}</p></div>`
-                : filtered.map(m => renderMenteeCard(m)).join('');
+            container.innerHTML = mentees.map((m, i) => `
+                <label style="display:flex;align-items:center;gap:12px;padding:9px 12px;
+                              border-radius:8px;cursor:pointer;transition:background 0.15s;
+                              ${i < mentees.length - 1 ? 'border-bottom:1px solid rgba(0,0,0,0.05);' : ''}"
+                    onmouseover="this.style.background='rgba(13,27,75,0.055)'"
+                    onmouseout="this.style.background='transparent'"
+                    data-name="${m.name.toLowerCase()}" data-roll="${(m.rollno||'').toLowerCase()}">
+                    <input type="checkbox" class="meet-mentee-cb" value="${m.id}"
+                        onchange="updateMeetSelectedCount()"
+                        style="width:16px;height:16px;accent-color:var(--text-main);cursor:pointer;flex-shrink:0;"/>
+                    <span style="font-size:0.875rem;font-weight:600;color:var(--text-main);flex:1;">${m.name}</span>
+                    <span style="font-size:0.75rem;color:var(--text-muted);background:#f0f4ff;padding:2px 8px;border-radius:20px;font-weight:500;">${m.rollno || '—'}</span>
+                </label>`).join('');
+            updateMeetSelectedCount();
         }
 
-        async function loadMentees() {
-            myMentees = await API.get('/mentor/mentees');
-            renderMenteeGrid();
-            ['meet-mentee', 'rmk-mentee'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = '<option value="">— Choose Mentee —</option>' +
-                    myMentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
+        function filterMeetMenteeList() {
+            const q = document.getElementById('meet-mentee-search').value.toLowerCase();
+            document.querySelectorAll('#meet-mentee-list label').forEach(lbl => {
+                const name = lbl.dataset.name || '';
+                const roll = lbl.dataset.roll || '';
+                lbl.style.display = (!q || name.includes(q) || roll.includes(q)) ? '' : 'none';
             });
         }
-        document.getElementById('mentee-search').addEventListener('input', renderMenteeGrid);
+
+        function updateMeetSelectedCount() {
+            const count = document.querySelectorAll('.meet-mentee-cb:checked').length;
+            const total = document.querySelectorAll('.meet-mentee-cb').length;
+            document.getElementById('meet-selected-count').textContent = `${count} of ${total} mentee(s) selected`;
+            // Update Select All button label
+            const btn = document.getElementById('btn-select-all-mentees');
+            btn.textContent = (count === total && total > 0) ? '☐ Deselect All' : '☑ Select All';
+        }
+
+        function toggleSelectAllMentees() {
+            const cbs = document.querySelectorAll('.meet-mentee-cb');
+            const allChecked = [...cbs].every(cb => cb.checked);
+            cbs.forEach(cb => cb.checked = !allChecked);
+            updateMeetSelectedCount();
+        }
 
         async function loadDashboard() {
             try {
@@ -400,9 +414,9 @@
                 const de = document.getElementById('dash-mentees');
                 de.innerHTML = mentees.length === 0
                     ? '<div class="empty-state"><div class="icon">🎒</div><p>No mentees assigned yet</p></div>'
-                    : mentees.slice(0, 5).map(m => `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f4f8;">
-          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">${initials(m.name)}</div>
-          <div><div style="font-weight:600;font-size:0.875rem;">${m.name}</div><div style="font-size:0.75rem;color:#6b7280;">${m.rollno || '—'} · ${m.year || '—'}</div></div>
+                    : mentees.slice(0, 5).map(m => `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bg-app);">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--text-main),#1a2f7a);color:var(--bg-card);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">${initials(m.name)}</div>
+          <div><div style="font-weight:600;font-size:0.875rem;">${m.name}</div><div style="font-size:0.75rem;color:var(--text-muted);">${m.rollno || '—'} · ${m.year || '—'}</div></div>
         </div>`).join('');
 
                 const meetings = await API.get('/mentor/meetings');
@@ -410,9 +424,9 @@
                 const dm = document.getElementById('dash-meetings');
                 dm.innerHTML = upcoming.length === 0
                     ? '<div class="empty-state"><div class="icon">📅</div><p>No upcoming meetings</p></div>'
-                    : upcoming.map(m => `<div style="padding:12px;background:#f0f4f8;border-radius:10px;margin-bottom:8px;border-left:4px solid #0d1b4b;">
+                    : upcoming.map(m => `<div style="padding:12px;background:var(--bg-app);border-radius:10px;margin-bottom:8px;border-left:4px solid var(--text-main);">
           <div style="font-weight:700;font-size:0.875rem;">${m.mentee_name}</div>
-          <div style="font-size:0.78rem;color:#6b7280;">📅 ${formatDate(m.scheduled_at)} · 📍 ${m.venue || 'TBD'}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);">📅 ${formatDate(m.scheduled_at)} · 📍 ${m.venue || 'TBD'}</div>
         </div>`).join('');
             } catch (e) { toast(e.message, 'error'); }
         }
@@ -421,10 +435,10 @@
 
         function setMenteeView(mode) {
             currentMenteeView = mode;
-            document.getElementById('btn-view-all').style.background   = mode === 'all'   ? '#0d1b4b' : '#fff';
-            document.getElementById('btn-view-all').style.color        = mode === 'all'   ? '#fff'    : '#374151';
-            document.getElementById('btn-view-batch').style.background = mode === 'batch' ? '#0d1b4b' : '#fff';
-            document.getElementById('btn-view-batch').style.color      = mode === 'batch' ? '#fff'    : '#374151';
+            document.getElementById('btn-view-all').style.background   = mode === 'all'   ? 'var(--text-main)' : 'var(--bg-card)';
+            document.getElementById('btn-view-all').style.color        = mode === 'all'   ? 'var(--bg-card)'    : '#374151';
+            document.getElementById('btn-view-batch').style.background = mode === 'batch' ? 'var(--text-main)' : 'var(--bg-card)';
+            document.getElementById('btn-view-batch').style.color      = mode === 'batch' ? 'var(--bg-card)'    : '#374151';
             document.getElementById('mentees-grid').style.display  = mode === 'all'   ? 'grid' : 'none';
             document.getElementById('mentees-batch').style.display = mode === 'batch' ? 'block' : 'none';
             if (mode === 'batch') renderBatchView();
@@ -464,9 +478,9 @@
                     return `
                     <div style="margin-bottom:24px;">
                         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-                            <div style="background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;padding:6px 18px;border-radius:20px;font-size:0.9rem;font-weight:700;">📅 Batch ${g.batch}</div>
+                            <div style="background:linear-gradient(135deg,var(--text-main),#1a2f7a);color:var(--bg-card);padding:6px 18px;border-radius:20px;font-size:0.9rem;font-weight:700;">📅 Batch ${g.batch}</div>
                             <div style="background:#f0f4ff;color:#1e40af;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">${filtered.length} student${filtered.length > 1 ? 's' : ''}</div>
-                            <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+                            <div style="flex:1;height:1px;background:var(--border-light);"></div>
                         </div>
                         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">
                             ${filtered.map(m => renderMenteeCard(m)).join('')}
@@ -478,20 +492,34 @@
 
         async function loadMentees() {
             myMentees = await API.get('/mentor/mentees');
-            const q = document.getElementById('mentee-search').value.toLowerCase();
-            const filtered = myMentees.filter(m => m.name.toLowerCase().includes(q) || (m.rollno || '').toLowerCase().includes(q));
+            renderMenteeGrid();
+            if (currentMenteeView === 'batch') renderBatchView();
+            // Populate rmk-mentee dropdown
+            const rmkEl = document.getElementById('rmk-mentee');
+            if (rmkEl) rmkEl.innerHTML = '<option value="">— Choose Mentee —</option>' + myMentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
+            // Populate meetings multi-select checkbox list
+            renderMeetMenteeList(myMentees);
+        }
+
+        function renderMenteeGrid() {
+            const q  = (document.getElementById('mentee-search').value || '').toLowerCase();
+            const yr = (document.getElementById('batch-year-input').value || '').trim();
+            const filtered = myMentees.filter(m =>
+                (!yr || String(m.batch || '') === yr) &&
+                (!q  || m.name.toLowerCase().includes(q) || (m.rollno || '').toLowerCase().includes(q))
+            );
+            const label = document.getElementById('batch-count-label');
+            label.innerHTML = yr
+                ? `Showing <strong>${filtered.length}</strong> student(s) from Batch <strong>${yr}</strong>`
+                : `Showing all <strong>${filtered.length}</strong> student(s)`;
             const grid = document.getElementById('mentees-grid');
             grid.innerHTML = filtered.length === 0
-                ? '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎒</div><p>No mentees found</p></div>'
+                ? `<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎒</div><p>${yr ? `No students found for Batch ${yr}` : 'No mentees found'}</p></div>`
                 : filtered.map(m => renderMenteeCard(m)).join('');
-            if (currentMenteeView === 'batch') renderBatchView();
-            ['meet-mentee', 'rmk-mentee'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = '<option value="">— Choose Mentee —</option>' + myMentees.map(m => `<option value="${m.id}">${m.name} (${m.rollno || '—'})</option>`).join('');
-            });
         }
+
         document.getElementById('mentee-search').addEventListener('input', () => {
-            loadMentees();
+            renderMenteeGrid();
             if (currentMenteeView === 'batch') renderBatchView();
         });
 
@@ -513,26 +541,26 @@
         </div>
         <div style="margin-left:auto;display:flex;gap:10px;">
           <button class="btn btn-gold btn-sm" onclick="showPage('messages');startChat(${m.id},'${m.name}')">💬 Message</button>
-          <a href="/api/reports/mentee/${m.id}/pdf" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;">📥 PDF</a>
+          <a href="/api/reports/mentee/${m.id}/pdf" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:var(--bg-card);">📥 PDF</a>
         </div>
       </div>`;
                 const docsEl = document.getElementById('profile-docs');
                 docsEl.innerHTML = d.docs.length === 0 ? '<div class="empty-state"><div class="icon">📄</div><p>No documents</p></div>'
-                    : d.docs.map(doc => `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:#f0f4f8;border-radius:8px;margin-bottom:8px;">
-          <div><div style="font-weight:600;font-size:0.875rem;">📄 ${doc.original_name}</div><div style="font-size:0.75rem;color:#6b7280;">${doc.type} · ${formatDateOnly(doc.upload_date)}</div></div>
+                    : d.docs.map(doc => `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg-app);border-radius:8px;margin-bottom:8px;">
+          <div><div style="font-weight:600;font-size:0.875rem;">📄 ${doc.original_name}</div><div style="font-size:0.75rem;color:var(--text-muted);">${doc.type} · ${formatDateOnly(doc.upload_date)}</div></div>
           <a href="/uploads/${doc.filename}" target="_blank" class="btn btn-outline btn-sm">⬇ View</a>
         </div>`).join('');
                 const rmkEl = document.getElementById('profile-remarks');
                 rmkEl.innerHTML = d.remarks.length === 0 ? '<div class="empty-state"><div class="icon">📝</div><p>No remarks</p></div>'
-                    : d.remarks.map(r => `<div style="padding:12px;background:#f0f4f8;border-radius:8px;margin-bottom:8px;border-left:4px solid #0d1b4b;">
-          <div style="font-weight:700;font-size:0.8rem;color:#0d1b4b;">${r.semester || '—'} · CGPA: ${r.cgpa || '—'}</div>
+                    : d.remarks.map(r => `<div style="padding:12px;background:var(--bg-app);border-radius:8px;margin-bottom:8px;border-left:4px solid var(--text-main);">
+          <div style="font-weight:700;font-size:0.8rem;color:var(--text-main);">${r.semester || '—'} · CGPA: ${r.cgpa || '—'}</div>
           <p style="font-size:0.83rem;margin-top:4px;">${r.remarks}</p>
         </div>`).join('');
                 const meetEl = document.getElementById('profile-meetings');
                 meetEl.innerHTML = d.meetings.length === 0 ? '<div class="empty-state"><div class="icon">📅</div><p>No meetings</p></div>'
                     : '<div class="timeline">' + d.meetings.map(mt => `<div class="timeline-item ${mt.status}">
           <div><div style="display:flex;gap:10px;align-items:center;"><strong>${formatDate(mt.scheduled_at)}</strong><span class="badge badge-${mt.status}">${mt.status}</span></div>
-          <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">📍 ${mt.venue || 'N/A'} · ${mt.agenda || ''}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">📍 ${mt.venue || 'N/A'} · ${mt.agenda || ''}</div>
           ${mt.remarks ? `<div style="font-size:0.8rem;margin-top:3px;">💬 ${mt.remarks}</div>` : ''}
           </div></div>`).join('') + '</div>';
             } catch (e) { toast(e.message, 'error'); }
@@ -542,9 +570,9 @@
             const meetings = await API.get('/mentor/meetings');
             const tbody = document.getElementById('meetings-tbody');
             tbody.innerHTML = meetings.length === 0
-                ? '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6b7280;">No meetings yet</td></tr>'
+                ? '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">No meetings yet</td></tr>'
                 : meetings.map(m => `<tr>
-        <td><strong>${m.mentee_name}</strong><div style="font-size:0.75rem;color:#6b7280;">${m.rollno || ''}</div></td>
+        <td><strong>${m.mentee_name}</strong><div style="font-size:0.75rem;color:var(--text-muted);">${m.rollno || ''}</div></td>
         <td>${formatDate(m.scheduled_at)}</td><td>${m.venue || '—'}</td>
         <td style="max-width:150px;font-size:0.82rem;">${m.agenda || '—'}</td>
         <td><span class="badge badge-${m.status}">${m.status}</span></td>
@@ -556,14 +584,18 @@
       </tr>`).join('');
         }
         async function scheduleMeeting() {
-            const mentee_id = document.getElementById('meet-mentee').value;
+            const mentee_ids = [...document.querySelectorAll('.meet-mentee-cb:checked')].map(cb => Number(cb.value));
             const scheduled_at = document.getElementById('meet-datetime').value;
             const venue = document.getElementById('meet-venue').value;
             const agenda = document.getElementById('meet-agenda').value;
-            if (!mentee_id || !scheduled_at) { toast('Select mentee and date', 'warning'); return; }
+            if (mentee_ids.length === 0) { toast('Select at least one mentee', 'warning'); return; }
+            if (!scheduled_at) { toast('Please select a date and time', 'warning'); return; }
             try {
-                await API.post('/mentor/meetings', { mentee_id, scheduled_at, venue, agenda });
-                toast('Meeting scheduled!', 'success');
+                const res = await API.post('/mentor/meetings', { mentee_ids, scheduled_at, venue, agenda });
+                toast(res.message || `${mentee_ids.length} meeting(s) scheduled!`, 'success');
+                // Uncheck all mentees and clear fields
+                document.querySelectorAll('.meet-mentee-cb').forEach(cb => cb.checked = false);
+                updateMeetSelectedCount();
                 ['meet-datetime', 'meet-venue', 'meet-agenda'].forEach(id => document.getElementById(id).value = '');
                 loadMeetings();
             } catch (e) { toast(e.message, 'error'); }
@@ -608,31 +640,31 @@
                 const lm = s.lastMessage;
                 const isFromMe = lm && lm.sender_id === user.id;
                 const preview = lm
-                    ? `${isFromMe ? '<span style="color:#6b7280">You: </span>' : `<span style="color:#0d1b4b;font-weight:600">${m.name.split(' ')[0]}: </span>`}${lm.content.length > 38 ? lm.content.slice(0, 38) + '…' : lm.content}`
-                    : '<span style="color:#9ca3af;font-style:italic;">No messages yet</span>';
+                    ? `${isFromMe ? '<span style="color:var(--text-muted)">You: </span>' : `<span style="color:var(--text-main);font-weight:600">${m.name.split(' ')[0]}: </span>`}${lm.content.length > 38 ? lm.content.slice(0, 38) + '…' : lm.content}`
+                    : '<span style="color:var(--text-muted);font-style:italic;">No messages yet</span>';
                 const timeStr = lm ? formatDate(lm.timestamp) : '';
                 const unreadBadge = s.unread > 0
-                    ? `<span style="background:#dc2626;color:#fff;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:auto;flex-shrink:0;">${s.unread}</span>`
+                    ? `<span style="background:#dc2626;color:var(--bg-card);font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:auto;flex-shrink:0;">${s.unread}</span>`
                     : '';
                 const isActive = activeChatMenteeId === m.id;
 
                 return `<div onclick="startChat(${m.id},'${m.name}')" id="mentee-row-${m.id}"
                     style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;
-                           border:1.5px solid ${isActive ? '#0d1b4b' : (s.unread > 0 ? '#fca5a5' : '#e5e7eb')};
-                           background:${isActive ? 'rgba(13,27,75,0.05)' : (s.unread > 0 ? 'rgba(220,38,38,0.03)' : '#fff')};
+                           border:1.5px solid ${isActive ? 'var(--text-main)' : (s.unread > 0 ? 'var(--danger)' : 'var(--border-light)')};
+                           background:${isActive ? 'rgba(13,27,75,0.05)' : (s.unread > 0 ? 'rgba(220,38,38,0.03)' : 'var(--bg-card)')};
                            transition:all 0.18s;"
-                    onmouseover="this.style.borderColor='#0d1b4b';this.style.background='rgba(13,27,75,0.04)'"
-                    onmouseout="this.style.borderColor='${isActive ? '#0d1b4b' : (s.unread > 0 ? '#fca5a5' : '#e5e7eb')}';this.style.background='${isActive ? 'rgba(13,27,75,0.05)' : (s.unread > 0 ? 'rgba(220,38,38,0.03)' : '#fff')}'">
-                    <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0d1b4b,#1a2f7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;position:relative;">
+                    onmouseover="this.style.borderColor='var(--text-main)';this.style.background='rgba(13,27,75,0.04)'"
+                    onmouseout="this.style.borderColor='${isActive ? 'var(--text-main)' : (s.unread > 0 ? 'var(--danger)' : 'var(--border-light)')}';this.style.background='${isActive ? 'rgba(13,27,75,0.05)' : (s.unread > 0 ? 'rgba(220,38,38,0.03)' : 'var(--bg-card)')}'">
+                    <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--text-main),#1a2f7a);color:var(--bg-card);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;position:relative;">
                         ${initials(m.name)}
-                        ${s.unread > 0 ? '<span style="position:absolute;top:-2px;right:-2px;width:10px;height:10px;background:#dc2626;border-radius:50%;border:2px solid #fff;"></span>' : ''}
+                        ${s.unread > 0 ? '<span style="position:absolute;top:-2px;right:-2px;width:10px;height:10px;background:#dc2626;border-radius:50%;border:2px solid var(--bg-card);"></span>' : ''}
                     </div>
                     <div style="flex:1;min-width:0;">
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:2px;">
-                            <span style="font-weight:${s.unread > 0 ? '700' : '600'};font-size:0.875rem;color:#0d1b4b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</span>
-                            <span style="font-size:0.68rem;color:#9ca3af;white-space:nowrap;flex-shrink:0;">${timeStr ? new Date(timeStr).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
+                            <span style="font-weight:${s.unread > 0 ? '700' : '600'};font-size:0.875rem;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</span>
+                            <span style="font-size:0.68rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0;">${timeStr ? new Date(timeStr).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
                         </div>
-                        <div style="font-size:0.775rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;">
+                        <div style="font-size:0.775rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;">
                             ${preview}${unreadBadge}
                         </div>
                     </div>
@@ -652,7 +684,7 @@
             const box = document.getElementById('chat-messages');
             box.innerHTML = msgs.map(m => {
                 const isMe = m.sender_id === user.id;
-                const senderLabel = isMe ? '' : `<div style="font-size:0.68rem;font-weight:700;color:#0d1b4b;margin-bottom:3px;">${menteeName}</div>`;
+                const senderLabel = isMe ? '' : `<div style="font-size:0.68rem;font-weight:700;color:var(--text-main);margin-bottom:3px;">${menteeName}</div>`;
                 return `<div class="chat-bubble ${isMe ? 'sent' : 'received'}">${senderLabel}<div>${m.content}</div><div class="meta">${formatDate(m.timestamp)}</div></div>`;
             }).join('') || '<div class="empty-state"><div class="icon">💬</div><p>No messages yet</p></div>';
             box.scrollTop = box.scrollHeight;

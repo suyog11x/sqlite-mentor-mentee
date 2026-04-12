@@ -120,18 +120,33 @@ router.get('/meetings', async (req, res) => {
 });
 
 // POST /api/mentor/meetings
+// Accepts mentee_ids (array) OR mentee_id (single) to schedule meetings for one or many mentees.
 router.post('/meetings', async (req, res) => {
     try {
-        const { mentee_id, scheduled_at, venue, agenda } = req.body;
-        if (!mentee_id || !scheduled_at) return res.status(400).json({ error: 'Mentee and scheduled_at required' });
-        const meeting = Meeting.create({
-            mentorId:    req.user.id,
-            menteeId:    mentee_id,
-            scheduledAt: new Date(scheduled_at),
-            venue:       venue || '',
-            agenda:      agenda || '',
-        });
-        res.json({ id: meeting.id, message: 'Meeting scheduled' });
+        const { mentee_id, mentee_ids, scheduled_at, venue, agenda } = req.body;
+        if (!scheduled_at) return res.status(400).json({ error: 'scheduled_at is required' });
+
+        // Build unified array of mentee IDs
+        let ids = [];
+        if (Array.isArray(mentee_ids) && mentee_ids.length > 0) {
+            ids = mentee_ids.map(Number).filter(Boolean);
+        } else if (mentee_id) {
+            ids = [Number(mentee_id)];
+        }
+        if (ids.length === 0) return res.status(400).json({ error: 'At least one mentee is required' });
+
+        const created = [];
+        for (const mId of ids) {
+            const meeting = Meeting.create({
+                mentorId:    req.user.id,
+                menteeId:    mId,
+                scheduledAt: new Date(scheduled_at),
+                venue:       venue || '',
+                agenda:      agenda || '',
+            });
+            created.push(meeting.id);
+        }
+        res.json({ ids: created, message: `${created.length} meeting(s) scheduled` });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });

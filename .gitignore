@@ -1,6 +1,6 @@
 node_modules/
-uploads/
-*.db
+# uploads/
+# *.db
 *.db-*
 .env
 .DS_Store
