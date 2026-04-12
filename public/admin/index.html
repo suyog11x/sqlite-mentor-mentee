@@ -42,7 +42,7 @@
                 <div class="nav-item" data-page="assign"><span class="nav-icon">🔗</span><span class="nav-label">Assign
                         Mentees</span></div>
                 <div class="nav-section-label">Bulk Operations</div>
-                <div class="nav-item" data-page="bulk"><span class="nav-icon">📤</span><span class="nav-label">Bulk Upload</span></div>
+                <div class="nav-item" data-page="bulk"><span class="nav-icon">📤</span><span class="nav-label">Upload details</span></div>
                 <div class="nav-item" data-page="documents"><span class="nav-icon">📁</span><span class="nav-label">Documents</span></div>
                 <div class="nav-section-label">Analytics</div>
                 <div class="nav-item" data-page="reports"><span class="nav-icon">📈</span><span
@@ -294,19 +294,6 @@
 
                 <!-- BULK UPLOAD PAGE -->
                 <div class="page" id="page-bulk">
-                    <!-- Info Banner -->
-                    <div style="background:linear-gradient(135deg,var(--text-main) 0%,#1e3a8a 100%);border-radius:16px;padding:28px 32px;margin-bottom:24px;color:var(--bg-card);display:flex;align-items:center;gap:24px;">
-                        <div style="font-size:3rem;">📤</div>
-                        <div>
-                            <h2 style="margin:0 0 6px;font-size:1.35rem;font-weight:700;">Bulk Student Upload via Excel</h2>
-                            <p style="margin:0;opacity:.82;font-size:.92rem;">Upload an <strong>.xlsx</strong> file to create or update multiple mentee accounts at once. Email is auto-derived as <code style="background:rgba(255,255,255,.15);padding:2px 7px;border-radius:5px;">UID@students.git.edu</code>. Default password is <code style="background:rgba(255,255,255,.15);padding:2px 7px;border-radius:5px;">git@12345</code>.</p>
-                        </div>
-                        <div style="margin-left:auto;">
-                            <button class="btn" id="btn-download-template" onclick="downloadTemplate()" style="background:rgba(255,255,255,.15);color:var(--bg-card);border:1.5px solid rgba(255,255,255,.35);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:.9rem;white-space:nowrap;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
-                                ⬇ Download Template
-                            </button>
-                        </div>
-                    </div>
 
                     <div class="grid-2" style="gap:20px;align-items:start;">
                         <!-- Upload Card -->
@@ -337,11 +324,6 @@
                                 <div id="drop-zone-filename" style="display:none;margin-top:14px;padding:8px 16px;background:#dbeafe;border-radius:8px;font-size:.85rem;font-weight:600;color:#1d4ed8;"></div>
                             </div>
                             <input type="file" id="bulk-file-input" accept=".xlsx" style="display:none" onchange="handleFileSelect(this.files[0])" />
-
-                            <!-- Email domain warning -->
-                            <div style="margin-top:14px;background:var(--warning-bg);border:1px solid var(--warning);border-radius:10px;padding:12px 16px;font-size:.83rem;color:var(--warning);">
-                                ⚠️ <strong>Email Domain Rule:</strong> Student emails are generated as <code>UID@students.git.edu</code>. If a UID contains an incorrect format or is associated with a different domain, the upload will flag it as an error.
-                            </div>
 
                             <!-- Upload Button -->
                             <button id="btn-do-upload" onclick="doUpload()" disabled
